@@ -1,0 +1,39 @@
+:root {
+  /* Colors */
+  --bg-main: #0f1013;
+  --bg-sidebar: #191b23;
+  --bg-card: #202330;
+  --bg-card-hover: #292d3e;
+  --bg-input: #15171e;
+  --bg-button: #6c5ce7;
+  --bg-button-hover: #5a4ac3;
+  
+  --text-main: #ffffff;
+  --text-muted: #8b8f9c;
+  --text-dark: #1e1e24;
+
+  --accent-primary: #6c5ce7;
+  --accent-secondary: #00d8ff;
+  --accent-success: #00e676;
+  --accent-danger: #ff4757;
+  --accent-warning: #ffa502;
+
+  /* Layout */
+  --sidebar-width: 260px;
+  --topbar-height: 70px;
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 20px;
+  
+  /* Typography */
+  --font-family-base: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  
+  /* Transitions */
+  --t-fast: 0.15s ease-in-out;
+  --t-normal: 0.3s ease-in-out;
+  
+  /* Shadows */
+  --shadow-sm: 0 4px 6px rgba(0,0,0,0.1);
+  --shadow-md: 0 8px 16px rgba(0,0,0,0.25);
+  --shadow-glow: 0 0 15px rgba(108, 92, 231, 0.4);
+}

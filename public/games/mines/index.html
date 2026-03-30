@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mines - Arcade Hub</title>
+<link href="/assets/css/main.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<style>
+        .mines-wrapper {
+            display: flex; gap: 20px; width: 100%; max-width: 900px;
+        }
+        .mines-controls {
+            flex: 1; min-width: 250px; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 20px;
+            display: flex; flex-direction: column; gap: 15px; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .mines-controls label { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); }
+        .mines-controls input { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--bg-input); color: #fff; font-size: 1.1rem; text-align: center; font-weight: bold; }
+        
+        .mines-game-area {
+            flex: 2; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.1); border-radius: 12px; padding: 20px; min-height: 400px;
+            position: relative;
+        }
+
+        
+        #mines-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+            width: 100%; max-width: 450px; margin: 0 auto;
+        }
+
+        .mine-cell {
+            width: 100%; aspect-ratio: 1; perspective: 1000px; cursor: pointer;
+        }
+    
+        .mine-cell-inner {
+            width: 100%; height: 100%; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d; position: relative;
+        }
+        
+        .mine-cell.revealed .mine-cell-inner { transform: rotateY(180deg); }
+        
+        .mine-cell-front, .mine-cell-back {
+            width: 100%; height: 100%; position: absolute; backface-visibility: hidden;
+            border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        .mine-cell-front {
+            background: linear-gradient(135deg, #3a3a4c, #2a2a3e);
+            border-bottom: 4px solid #1a1a2e; transition: 0.2s;
+        }
+        .mine-cell-front:hover { background: linear-gradient(135deg, #4a4a5c, #3a3a4e); transform: translateY(-2px); }
+        
+        .mine-cell-back { transform: rotateY(180deg); }
+        .mine-cell-back.gem { background: radial-gradient(circle, #00d2ff 0%, #3a7bd5 100%); border: 1px solid #00d2ff; text-shadow: 0 0 10px rgba(0,255,255,0.8); }
+        .mine-cell-back.bomb { background: radial-gradient(circle, #ff416c 0%, #ff4b2b 100%); border: 1px solid #ff416c; }
+
+        .mine-cell.dimmed { opacity: 0.7; }
+
+        .btn-cashout { background: linear-gradient(to right, #00b4db, #0083b0); border: none; color: #fff; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
+        .btn-cashout:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 180, 219, 0.4); }
+        .btn-cashout:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+
+        #message { text-align: center; font-size: 1.2rem; font-weight: bold; min-height: 24px; margin-bottom: 20px;}
+    </style>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/></head>
+<body>
+<div class="app-container">
+<!-- SIDEBAR -->
+<aside class="sidebar" id="mainSidebar">
+<div class="sidebar-header"><span>Arcade</span>Hub</div>
+<ul class="sidebar-nav">
+<div class="sidebar-nav-title">Menu</div>
+<li><a href="/index.html"><svg viewbox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>Home</a></li>
+<li><a href="/leaderboards.html"><svg viewbox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V7h10v2z"></path></svg>Leaderboards</a></li>
+<li><a href="/shop.html"><svg viewbox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"></path></svg>Store</a></li>
+</ul>
+</aside>
+<!-- MAIN WRAPPER -->
+<div class="main-wrapper">
+<header class="topbar">
+<div class="topbar-search"><input placeholder="Search..." type="text"/></div>
+<div class="topbar-actions"><div id="auth-links"><a class="btn btn-primary" href="/login.html">Log in</a></div><div id="user-links" style="display:none;"></div></div>
+</header>
+<main class="page-content" style="display:flex; justify-content:center;">
+<div class="game-page-layout" style="display: flex; gap: 30px; align-items: flex-start; max-width: 1400px; margin: 0 auto; margin-bottom:40px;">
+<!-- Left Side: Game + Toolbar + Description -->
+<div class="game-left-col" style="flex: 1; min-width: 0;">
+<!-- Game Viewport -->
+<div id="game-viewport" style="position: relative; width: 100%; min-height:600px; background: var(--bg-dark); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05);">
+<!-- BLURRED START OVERLAY -->
+<div id="game-start-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100;">
+<h2 style="font-size: 2.5rem; margin-bottom: 30px; text-shadow: 0 4px 10px rgba(0,0,0,0.8); color:#fff; font-weight:800;">Choose Game Mode</h2>
+<div style="display:flex; gap: 15px; flex-wrap:wrap; justify-content:center;">
+<button class="btn btn-primary" onclick="document.getElementById('game-start-overlay').style.display='none'; document.getElementById('actual-game-container').style.filter='none';" style="padding:12px 24px; font-size:1.1rem; border-radius:30px;">💎 Enter Mines</button>
+</div>
+</div>
+<!-- ACTUAL GAME RENDER -->
+<div id="actual-game-container" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; filter: blur(5px); transition: filter 0.5s;">
+<div class="mines-wrapper">
+<div class="mines-controls">
+<h2 style="margin: 0; font-size: 1.8rem;">Gem Mines</h2>
+<p style="color: var(--text-muted); font-size: 0.9rem; margin-top: -5px;">Find gems, avoid bombs.</p>
+<div style="margin-top: 10px;">
+<label>Amount of Mines (1-24)</label>
+<input id="mines-count" max="24" min="1" style="display: block; width: 100%; text-align: center; font-size: 2rem; background: rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; color: white; padding: 10px; margin-bottom: 10px;" type="text" value="3"/>
+<div style="display: flex; gap: 5px; margin-bottom: 15px; justify-content: space-between;">
+<button class="preset-btn" onclick="document.getElementById('mines-count').value=3">3</button>
+<button class="preset-btn" onclick="document.getElementById('mines-count').value=5">5</button>
+<button class="preset-btn" onclick="document.getElementById('mines-count').value=10">10</button>
+<button class="preset-btn" onclick="document.getElementById('mines-count').value=15">15</button>
+<button class="preset-btn" onclick="document.getElementById('mines-count').value=20">20</button>
+</div>
+<div id="mines-error" style="color: #FF6B6B; font-size: 0.9rem; margin-bottom: 10px; min-height: 1.2rem; display:none;">Invalid number! Please enter 1-24.</div>
+<style>
+    .preset-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 5px 15px; border-radius: 5px; cursor: pointer; transition: 0.2s; flex: 1;}
+    .preset-btn:hover { background: rgba(255,255,255,0.2); }
+    .dimmed { opacity: 0.6; filter: grayscale(50%); } 
+    </style>
+
+</div>
+<button class="btn btn-primary" id="start-btn" style="padding: 15px; font-size: 1.1rem; margin-top: 10px;">Bet / Play</button>
+<button class="btn-cashout" disabled="" id="cashout-btn">Cashout</button>
+</div>
+<div class="mines-game-area">
+<div style="display:flex; flex-direction:column; align-items:center; width:100%;">
+<div id="message"></div>
+<div id="mines-grid"></div>
+</div>
+</div>
+</div>
+<div id="setup-panel" style="display:none; margin-top:10px;">
+<button class="btn btn-outline" id="createBtn" style="margin-bottom:5px; width:100%;">Create Room</button>
+<div style="display:flex; gap:5px;">
+<input id="roomInput" placeholder="Room ID" style="flex:1; padding:5px; border-radius:4px;" type="text"/>
+<button class="btn btn-primary" id="joinBtn">Join</button>
+</div>
+<div id="roomDisplay" style="margin-top:5px; color:var(--text-muted); font-size:0.9rem;"></div>
+</div>
+</div>
+</div>
+<!-- ACTION TOOLBAR (Right to Left) -->
+<div class="action-bar-wrapper" style="width: 100%;">
+<div class="game-action-bar modern-action-bar" style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">
+<button class="action-btn pill-btn invite-btn" data-tooltip="Invite Friends" onclick="showInviteModal()" style="background-color: #558B6E; color: white; border-radius: 30px; border: none; cursor: pointer;">
+<i class="bi bi-person-add"></i> <span>Invite</span>
+</button>
+<div class="vote-group" style="display: flex; background: rgba(255,255,255,0.08); border-radius: 30px; overflow: hidden; margin-right: 15px; align-items: center;">
+<button class="action-btn vote-btn like-btn" data-tooltip="Like Game" onclick="likeGame()" style="background: none; border: none; color: white; cursor: pointer;">
+<i class="bi bi-hand-thumbs-up-fill"></i> <span id="like-count" style="margin-left: 5px;">0</span>
+</button>
+<div style="width: 1px; height: 30px; background: rgba(255,255,255,0.2);"></div>
+<button class="action-btn vote-btn dislike-btn" data-tooltip="Dislike Game" onclick="dislikeGame()" style="background: none; border: none; color: white; cursor: pointer;">
+<i class="bi bi-hand-thumbs-down-fill"></i>
+</button>
+</div>
+<button class="action-btn circle-btn fav-btn" data-tooltip="Add to Favorites" onclick="toggleFavorite()" style="border: none; color: white; cursor: pointer;">
+<i class="bi bi-heart"></i>
+</button>
+<button class="action-btn circle-btn feedback-btn" data-tooltip="Feedback" onclick="showFeedbackModal()" style="border: none; color: white; cursor: pointer;">
+<i class="bi bi-chat-square-text"></i>
+</button>
+<button class="action-btn circle-btn controls-btn" data-tooltip="Game Controls" onclick="toggleControls()" style="border: none; color: white; cursor: pointer;">
+<i class="bi bi-controller"></i>
+</button>
+<button class="action-btn circle-btn fs-btn" data-tooltip="Full Screen" id="fullscreen-btn" style="border: none; color: white; cursor: pointer;">
+<i class="bi bi-arrows-fullscreen"></i>
+</button>
+</div>
+<div class="game-controls-accordion" id="game-controls-accordion">
+<h4 style="margin-bottom: 10px; color: white; display:flex; align-items:center; gap: 8px;">
+<i class="bi bi-info-circle"></i> How to Play
+        </h4>
+<p id="game-instructions-text" style="color: #aaa; margin: 0;">Click tiles to reveal them. Numbers indicate how many bombs are adjacent. Avoid the bombs and collect the safe gems. Right-click to flag suspected bombs!</p>
+</div>
+</div>
+<!-- DESCRIPTION BOX -->
+<div class="game-description-box" style="margin-top: 20px; background: var(--bg-card); padding: 30px; border-radius: 16px; line-height: 1.6; border:1px solid rgba(255,255,255,0.05);">
+<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 20px; margin-bottom: 20px;">
+<div>
+<h1 style="font-size: 2.5rem; margin: 0 0 5px 0; font-weight:800;">Gem Mines</h1>
+<span style="color:var(--text-muted);">Action • Multiplayer</span>
+</div>
+</div>
+<div class="meta-data" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; padding: 20px; background: var(--bg-dark); border-radius: 8px; font-size: 0.95rem;">
+<div><div style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase;">Developer</div><strong>ArcadeHub Casino</strong></div>
+<div><div style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase;">Released</div><strong>February 2026</strong></div>
+<div><div style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase;">Technology</div><strong>HTML5</strong></div>
+<div><div style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase;">Platforms</div><strong>Browser</strong></div>
+</div>
+<div style="color:var(--text-main); font-size:1.05rem;">
+<p>Click tiles to uncover gems, but beware the hidden bombs! Cash out before you hit one.</p>
+<h3 style="margin-top:25px; font-size:1.5rem;">How to Play</h3>
+<p>Follow the on-screen instructions. Master your timing and outsmart your opponents to secure the top spot on the leaderboards!</p>
+</div>
+</div>
+</div>
+<!-- Right Side: Related Games -->
+<div class="game-right-col" style="width: 320px; flex-shrink: 0;">
+<h3 style="margin-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom:10px; font-size:1.2rem;">Related Games</h3>
+<div class="related-games-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+<a class="game-card" href="/games/connect4/index.html" style="aspect-ratio:3/4;">
+<div class="game-card-img-container" style="height:60%;">
+<div class="game-card-img" style="background-image: url('https://t3.ftcdn.net/jpg/04/06/93/82/360_F_406938253_AneDCdBsJJic1FpXtQFG929pNAV9m0wm.jpg');"></div>
+</div>
+<div class="game-card-info" style="padding:10px;"><h3 class="game-card-title" style="font-size:0.9rem;">Connect 4</h3></div>
+</a>
+<a class="game-card" href="/games/snake/index.html" style="aspect-ratio:3/4;">
+<div class="game-card-img-container" style="height:60%;">
+<div class="game-card-img" style="background-image: url('https://t4.ftcdn.net/jpg/07/11/95/05/360_F_711950540_17IHHEPz3bW00kxb3oBAm2x63XwqbAAt.jpg');"></div>
+</div>
+<div class="game-card-info" style="padding:10px;"><h3 class="game-card-title" style="font-size:0.9rem;">Retro Snake</h3></div>
+</a>
+<a class="game-card" href="/games/tictactoe/index.html" style="aspect-ratio:3/4;">
+<div class="game-card-img-container" style="height:60%;">
+<div class="game-card-img" style="background-image: url('https://cdn-icons-png.flaticon.com/512/10199/10199746.png');"></div>
+</div>
+<div class="game-card-info" style="padding:10px;"><h3 class="game-card-title" style="font-size:0.9rem;">Tic-Tac-Toe</h3></div>
+</a>
+<a class="game-card" href="/games/mines/index.html" style="aspect-ratio:3/4;">
+<div class="game-card-img-container" style="height:60%;">
+<div class="game-card-img" style="background-image: url('https://png.pngtree.com/recommend-works/png-clipart/20250707/ourmid/pngtree-blue-crystal-cluster-icon-in-flat-style-suitable-for-fantasy-gem-png-image_16704627.webp');"></div>
+</div>
+<div class="game-card-info" style="padding:10px;"><h3 class="game-card-title" style="font-size:0.9rem;">Gem Mines</h3></div>
+</a>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<script src="/config.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/main.js" type="module"></script>
+<script src="game.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const fsBtn = document.getElementById('fullscreen-btn');
+        if(fsBtn) {
+            fsBtn.onclick = () => {
+                const gameArea = document.getElementById('actual-game-container');
+                if(gameArea && gameArea.requestFullscreen) {
+                    gameArea.requestFullscreen();
+                }
+            }
+        }
+    });
+</script>
+<!-- Social/Game Modals -->
+<div class="modal-overlay hidden" id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+<div class="modal-content modern-modal" style="background: #1a1a2e; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; color: white; border: 1px solid rgba(255,255,255,0.1);">
+<h3><i class="bi bi-chat-square-text"></i> Submit Feedback</h3>
+<textarea id="feedback-text" placeholder="What do you think about the game?" rows="4" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; margin: 15px 0; border-radius: 5px; box-sizing: border-box;"></textarea>
+<button class="action-btn" onclick="submitFeedback()" style="background: #558B6E; border: none; padding: 8px 15px; color: white; border-radius: 5px; cursor: pointer; width: 100%; margin-bottom: 10px;">Send Feedback</button>
+<button class="close-modal" onclick="closeModal('feedbackModal')" style="background: rgba(255,255,255,0.1); border: none; padding: 8px 15px; color: white; border-radius: 5px; cursor: pointer; width: 100%;">Cancel</button>
+</div>
+</div>
+<div class="modal-overlay hidden" id="inviteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+<div class="modal-content modern-modal" style="background: #1a1a2e; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; color: white; border: 1px solid rgba(255,255,255,0.1);">
+<h3><i class="bi bi-person-add"></i> Invite Friends</h3>
+<div class="friend-list-container" id="invite-friend-list" style="margin: 15px 0; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;">
+<p style="color: #aaa; text-align: center;">Loading friends...</p>
+</div>
+<div class="add-friend-section" style="display: flex; gap: 10px; margin-bottom: 15px;">
+<input id="new-friend-username" placeholder="Enter friend's username" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 5px;" type="text"/>
+<button class="action-btn" onclick="sendFriendRequest()" style="background: #558B6E; border: none; padding: 8px 15px; color: white; border-radius: 5px; cursor: pointer;">Add</button>
+</div>
+<button class="close-modal" onclick="closeModal('inviteModal')" style="background: rgba(255,255,255,0.1); border: none; padding: 8px 15px; color: white; border-radius: 5px; cursor: pointer; width: 100%;">Close</button>
+</div>
+</div>
+<script>
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if(modal) {
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+    }
+}
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if(modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+    }
+}
+function likeGame() { alert("Liked game! (Backend integration pending)"); }
+function dislikeGame() { alert("Disliked game! (Backend integration pending)"); }
+function toggleFavorite() { alert("Toggled favorite! (Backend integration pending)"); }
+function submitFeedback() { alert("Feedback submitted! Thank you."); closeModal("feedbackModal"); }
+function sendFriendRequest() { alert("Friend request sent!"); }
+</script>
+<script src="../../assets/js/social.js"></script>
+<div class="modal-overlay hidden" id="authGuardModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+<div class="modal-content modern-modal" style="background: #1a1a2e; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; color: white; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+<i class="bi bi-person-lock" style="font-size: 3rem; color: #ff6b6b; margin-bottom: 15px; display: block;"></i>
+<h3 style="margin-bottom: 10px; font-size: 1.5rem;">Login Required</h3>
+<p style="color: #aaa; margin-bottom: 25px;">You need to be logged in to use social features like liking, adding favorites, or inviting friends.</p>
+<div style="display: flex; gap: 10px; justify-content: center;">
+<a class="action-btn" href="../../login.html" style="background: #558B6E; color: white; text-decoration: none; border-radius: 8px; padding: 10px 20px;">Log In</a>
+<a class="action-btn" href="../../signup.html" style="background: rgba(255,255,255,0.1); color: white; text-decoration: none; border-radius: 8px; padding: 10px 20px;">Sign Up</a>
+</div>
+<button class="close-modal" onclick="closeAuthGuard()" style="margin-top: 20px; background: transparent; border: none; color: #aaa; cursor: pointer; text-decoration: underline;">Maybe later</button>
+</div>
+</div>
+<script>
+window.showGameOver = function(title, msg, isWin) {
+    const modal = document.getElementById('universal-game-over');
+    const titleEl = document.getElementById('go-title');
+    const msgEl = document.getElementById('go-msg');
+    
+    titleEl.textContent = title;
+    msgEl.textContent = msg;
+    
+    if (isWin === true) {
+        titleEl.style.color = '#88D49E'; // Green
+        titleEl.style.textShadow = '0 0 20px rgba(136,212,158,0.5)';
+    } else if (isWin === false) {
+        titleEl.style.color = '#FF6B6B'; // Red
+        titleEl.style.textShadow = '0 0 20px rgba(255,107,107,0.5)';
+    } else {
+        titleEl.style.color = '#F5B041'; // Yellow/Draw
+        titleEl.style.textShadow = '0 0 20px rgba(245,176,65,0.5)';
+    }
+    
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+    // small animation trick
+    setTimeout(() => {
+        modal.querySelector('.modal-content').style.transform = 'scale(1)';
+    }, 10);
+};
+</script>
+<script>
+window.showGameOver = function(title, msg, isWin) {
+    const modal = document.getElementById('universal-game-over');
+    const titleEl = document.getElementById('go-title');
+    const msgEl = document.getElementById('go-msg');
+    
+    titleEl.textContent = title;
+    msgEl.textContent = msg;
+    
+    if (isWin === true) {
+        titleEl.style.color = '#88D49E'; // Green
+        titleEl.style.textShadow = '0 0 20px rgba(136,212,158,0.5)';
+    } else if (isWin === false) {
+        titleEl.style.color = '#FF6B6B'; // Red
+        titleEl.style.textShadow = '0 0 20px rgba(255,107,107,0.5)';
+    } else {
+        titleEl.style.color = '#F5B041'; // Yellow/Draw
+        titleEl.style.textShadow = '0 0 20px rgba(245,176,65,0.5)';
+    }
+    
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+    // small animation trick
+    setTimeout(() => {
+        modal.querySelector('.modal-content').style.transform = 'scale(1)';
+    }, 10);
+};
+</script>
+<div class="modal-overlay hidden" id="universal-game-over" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(8px);">
+<div class="modal-content" style="background: var(--bg-card, #1a1a2e); padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 0 50px rgba(0,0,0,0.8); transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+<h2 id="go-title" style="font-size: 2.5rem; margin-bottom: 10px; color: white;">Game Over</h2>
+<p id="go-msg" style="color: #aaa; margin-bottom: 30px; font-size: 1.2rem;">Good game!</p>
+<button onclick="location.reload()" style="background: #558B6E; color: white; border: none; padding: 12px 25px; font-size: 1.2rem; border-radius: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto; gap: 10px; width: 100%; transition: transform 0.2s;">
+<i class="bi bi-arrow-clockwise"></i> Play Again
+        </button>
+</div>
+</div>
+<script>
+window.showGameOver = function(title, msg, isWin) {
+    const modal = document.getElementById('universal-game-over');
+    const titleEl = document.getElementById('go-title');
+    const msgEl = document.getElementById('go-msg');
+    
+    titleEl.textContent = title;
+    msgEl.textContent = msg;
+    
+    if (isWin === true) {
+        titleEl.style.color = '#88D49E'; // Green
+        titleEl.style.textShadow = '0 0 20px rgba(136,212,158,0.5)';
+    } else if (isWin === false) {
+        titleEl.style.color = '#FF6B6B'; // Red
+        titleEl.style.textShadow = '0 0 20px rgba(255,107,107,0.5)';
+    } else {
+        titleEl.style.color = '#F5B041'; // Yellow/Draw
+        titleEl.style.textShadow = '0 0 20px rgba(245,176,65,0.5)';
+    }
+    
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+    // small animation trick
+    setTimeout(() => {
+        modal.querySelector('.modal-content').style.transform = 'scale(1)';
+    }, 10);
+};
+</script>
+</body>
+</html>

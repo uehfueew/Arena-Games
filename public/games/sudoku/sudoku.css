@@ -1,0 +1,168 @@
+.container-sudoku {
+    max-width: 600px;
+    margin: 40px auto;
+    text-align: center;
+}
+
+.sudoku-grid {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 500px;
+    margin: 20px auto;
+    border: 4px solid var(--accent-blue);
+    box-shadow: 0 0 25px rgba(0, 229, 255, 0.3);
+    background-color: rgba(10, 10, 10, 0.8);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.cell {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    color: #fff;
+    background-color: transparent;
+    position: relative;
+}
+
+.cell.border-r { border-right: 3px solid var(--accent-blue); }
+.cell.border-b { border-bottom: 3px solid var(--accent-blue); }
+
+.cell.given {
+    color: #fff;
+    background-color: rgba(255,255,255,0.03);
+    text-shadow: 0 0 8px rgba(255,255,255,0.5);
+}
+
+.cell.user-input {
+    color: var(--accent-blue);
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.8);
+}
+
+.cell.error-anim {
+    color: var(--accent-red) !important;
+    background-color: rgba(255, 51, 102, 0.2) !important;
+    text-shadow: 0 0 10px var(--accent-red) !important;
+    animation: shake 0.3s ease-in-out;
+}
+
+.cell.error {
+    color: var(--accent-red) !important;
+    text-shadow: 0 0 10px var(--accent-red) !important;
+}
+
+.cell:hover { background-color: rgba(0, 229, 255, 0.1); }
+.cell.selected {
+    background-color: rgba(0, 229, 255, 0.25);
+    box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.5);
+}
+
+.cell.highlight {
+    background-color: rgba(0, 229, 255, 0.1);
+}
+
+.cell.highlight-match {
+    background-color: rgba(139, 92, 246, 0.3);
+    color: #fff;
+    text-shadow: 0 0 10px var(--accent-glow);
+    box-shadow: inset 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+/* Notes Grid inside a Cell */
+.notes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    width: 100%;
+    height: 100%;
+    padding: 2px;
+    pointer-events: none; /* Let cell handle clicks */
+}
+.note-num {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+}
+
+/* Numpad & Controls */
+.controls-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 500px;
+    margin: 0 auto 15px auto;
+}
+
+.numpad {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+.num-btn {
+    font-size: 1.4rem;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.num-btn:hover {
+    background: var(--accent-blue);
+    color: #000;
+    box-shadow: 0 0 15px var(--accent-blue);
+}
+
+.btn-toggle {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 8px 15px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-toggle.active {
+    background: var(--accent-glow);
+    color: #fff;
+    border-color: var(--accent-glow);
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
+}
+
+.score-display {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    display: flex; gap: 20px; align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.icon { font-style: normal; margin-right: 5px; opacity: 0.8; }
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
+    75% { transform: translateX(-3px); }
+    100% { transform: translateX(0); }
+}

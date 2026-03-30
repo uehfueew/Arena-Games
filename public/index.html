@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Arcade Hub | Play Free Games Online</title>
+<meta content="Play the best free online games, including multiplayer games, puzzle games, and more." name="description"/>
+<!-- Main Framework -->
+<link href="assets/css/main.css" rel="stylesheet"/>
+<!-- Google Fonts for UI -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/></head>
+<body>
+<div class="app-container">
+<!-- SIDEBAR -->
+<aside class="sidebar" id="mainSidebar">
+<div class="sidebar-header">
+<span>Arcade</span>Hub
+            </div>
+<ul class="sidebar-nav">
+<div class="sidebar-nav-title">Menu</div>
+<li class="active">
+<a href="index.html">
+<svg viewbox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
+                        Home
+                    </a>
+</li>
+<li>
+<a href="leaderboards.html">
+<svg viewbox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V7h10v2z"></path></svg>
+                        Leaderboards
+                    </a>
+</li>
+<li>
+<a href="shop.html">
+<svg viewbox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                        Store
+                    </a>
+</li>
+<div class="sidebar-nav-title">Categories</div>
+<li>
+<a href="#">
+<svg viewbox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 9H7V9h5v3zm5 0h-3V9h3v3z"></path></svg>
+                        Multiplayer
+                    </a>
+</li>
+<li>
+<a href="#">
+<svg viewbox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"></path></svg>
+                        Puzzle Focus
+                    </a>
+</li>
+<li>
+<a href="#">
+<svg viewbox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v2h2v-2h2v-2h-2v-2h-2v2z"></path></svg>
+                        Logic &amp; Strategy
+                    </a>
+</li>
+</ul>
+<div class="sidebar-footer">
+                © 2026 ArcadeHub.
+            </div>
+</aside>
+<!-- MAIN WRAPPER -->
+<div class="main-wrapper">
+<!-- TOPBAR -->
+<header class="topbar">
+<div class="topbar-search">
+<svg viewbox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+<input placeholder="Search for a game... (e.g. Sudoku)" type="text"/>
+</div>
+<div class="topbar-actions">
+<!-- Auth Actions -->
+<div id="auth-links" style="display: flex; gap: 10px;">
+<a class="btn btn-outline" href="login.html" style="padding: 8px 16px;">Log in</a>
+<a class="btn btn-primary" href="signup.html" style="padding: 8px 16px;">Sign up</a>
+</div>
+<!-- Authenticated User (hidden by default) -->
+<div id="user-links" style="display: none; align-items: center; gap: 15px;">
+<button aria-label="Notifications" class="btn-icon">
+<svg viewbox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"></path></svg>
+</button>
+<div class="user-badge" onclick="window.location.href='profile.html'">
+<div class="user-avatar" id="nav-avatar">A</div>
+<span class="user-name" id="profile-name">Guest</span>
+</div>
+<button class="btn btn-outline" id="logoutBtn" style="border: none; padding: 8px 12px; color: var(--text-muted);">
+<svg style="width: 18px; height: 18px; fill: currentColor; margin-left: 2px;" viewbox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"></path></svg>
+</button>
+</div>
+</div>
+</header>
+<!-- PAGE CONTENT -->
+<main class="page-content">
+<div class="section-header">
+<h2 class="section-title">
+<svg viewbox="0 0 24 24"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.47-.3 2.98-.93 4.03-1.92.12.5.18 1.03.18 1.58 0 3.06-2.54 5.5-5.8 5.5z"></path></svg>
+                        Trending Now
+                    </h2>
+</div>
+<div class="game-grid" id="gameGrid">
+<a class="game-card" href="games/connect4/index.html">
+<span class="tag hot">Hot</span>
+<div class="game-card-img-container">
+<div class="game-card-img" style="background-image: url('https://t3.ftcdn.net/jpg/04/06/93/82/360_F_406938253_AneDCdBsJJic1FpXtQFG929pNAV9m0wm.jpg');"></div>
+</div>
+<div class="game-card-info">
+<h3 class="game-card-title">Connect 4</h3>
+<div class="game-card-play-icon">
+<svg viewbox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+</div>
+</div>
+</a>
+<a class="game-card" href="games/snake/index.html">
+<div class="game-card-img-container">
+<div class="game-card-img" style="background-image: url('https://t4.ftcdn.net/jpg/07/11/95/05/360_F_711950540_17IHHEPz3bW00kxb3oBAm2x63XwqbAAt.jpg');"></div>
+</div>
+<div class="game-card-info">
+<h3 class="game-card-title">Retro Snake</h3>
+<div class="game-card-play-icon">
+<svg viewbox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+</div>
+</div>
+</a>
+<a class="game-card" href="games/tictactoe/index.html">
+<span class="tag new">Classic</span>
+<div class="game-card-img-container">
+<div class="game-card-img" style="background-image: url('https://cdn-icons-png.flaticon.com/512/10199/10199746.png');"></div>
+</div>
+<div class="game-card-info">
+<h3 class="game-card-title">Tic-Tac-Toe</h3>
+<div class="game-card-play-icon">
+<svg viewbox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+</div>
+</div>
+</a>
+<a class="game-card" href="games/sudoku/index.html">
+<span class="tag">Brain</span>
+<div class="game-card-img-container">
+<div class="game-card-img" style="background-image: url('https://media.istockphoto.com/id/1470771878/vector/number-puzzle.jpg?s=612x612&amp;w=0&amp;k=20&amp;c=Z49l3PWAKqm5zl9WtxFX9UyuxXvmUBO2hliyaa7h6rw=');"></div>
+</div>
+<div class="game-card-info">
+<h3 class="game-card-title">Sudoku Mastery</h3>
+<div class="game-card-play-icon">
+<svg viewbox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+</div>
+</div>
+</a>
+<a class="game-card" href="games/mines/index.html">
+<div class="game-card-img-container">
+<div class="game-card-img" style="background-image: url('https://png.pngtree.com/recommend-works/png-clipart/20250707/ourmid/pngtree-blue-crystal-cluster-icon-in-flat-style-suitable-for-fantasy-gem-png-image_16704627.webp');"></div>
+</div>
+<div class="game-card-info">
+<h3 class="game-card-title">Gem Mines</h3>
+<div class="game-card-play-icon">
+<svg viewbox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+</div>
+</div>
+</a>
+<a class="game-card" href="games/killersudoku/index.html">
+<span class="tag hot">Hard</span>
+<div class="game-card-img-container">
+<div class="game-card-img" style="background-image: url('https://www.dailykillersudoku.com/assets/logo-be8fb02423a8bcb9fd91213e35eb1b6f983b613920d834bc3751517733ce2ad5.png');"></div>
+</div>
+<div class="game-card-info">
+<h3 class="game-card-title">Killer Sudoku</h3>
+<div class="game-card-play-icon">
+<svg viewbox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+</div>
+</div>
+</a>
+<a class="game-card" href="games/labyrinth/index.html">
+<span class="tag new">New</span>
+<div class="game-card-img-container">
+<div class="game-card-img" style="background-image: url('https://cdn-icons-png.freepik.com/512/2241/2241394.png');"></div>
+</div>
+<div class="game-card-info">
+<h3 class="game-card-title">Labyrinth</h3>
+<div class="game-card-play-icon">
+<svg viewbox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+</div>
+</div>
+</a>
+</div>
+</main>
+</div>
+</div>
+<!-- Main Logic -->
+<script src="config.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="main.js" type="module"></script>
+</body>
+</html>

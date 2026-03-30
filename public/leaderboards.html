@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Arcade Hub | Leaderboards</title>
+<link href="/assets/css/main.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/></head>
+<body>
+<div class="app-container">
+<!-- SIDEBAR -->
+<aside class="sidebar" id="mainSidebar">
+<div class="sidebar-header">
+<span>Arcade</span>Hub
+            </div>
+<ul class="sidebar-nav">
+<div class="sidebar-nav-title">Menu</div>
+<li>
+<a href="/index.html">
+<svg viewbox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
+                        Home
+                    </a>
+</li>
+<li>
+<a href="/leaderboards.html">
+<svg viewbox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V7h10v2z"></path></svg>
+                        Leaderboards
+                    </a>
+</li>
+<li>
+<a href="/shop.html">
+<svg viewbox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+                        Store
+                    </a>
+</li>
+<div class="sidebar-nav-title">Categories</div>
+<li>
+<a href="#">
+<svg viewbox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 9H7V9h5v3zm5 0h-3V9h3v3z"></path></svg>
+                        Multiplayer
+                    </a>
+</li>
+<li>
+<a href="#">
+<svg viewbox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"></path></svg>
+                        Puzzle Focus
+                    </a>
+</li>
+<li>
+<a href="#">
+<svg viewbox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v2h2v-2h2v-2h-2v-2h-2v2z"></path></svg>
+                        Logic &amp; Strategy
+                    </a>
+</li>
+</ul>
+<div class="sidebar-footer">
+                © 2026 ArcadeHub.
+            </div>
+</aside>
+<!-- MAIN WRAPPER -->
+<div class="main-wrapper">
+<!-- TOPBAR -->
+<header class="topbar">
+<div class="topbar-search">
+<svg viewbox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
+<input placeholder="Search..." type="text"/>
+</div>
+<div class="topbar-actions">
+<div id="auth-links" style="display: flex; gap: 10px;">
+<a class="btn btn-outline" href="/login.html" style="padding: 8px 16px;">Log in</a>
+<a class="btn btn-primary" href="/signup.html" style="padding: 8px 16px;">Sign up</a>
+</div>
+<div id="user-links" style="display: none; align-items: center; gap: 15px;">
+<div class="user-badge" onclick="window.location.href='/profile.html'">
+<div class="user-avatar" id="nav-avatar">A</div>
+<span class="user-name" id="profile-name">Guest</span>
+</div>
+<button class="btn btn-outline" id="logoutBtn" style="border: none; padding: 8px 12px; color: var(--text-muted);">
+<svg style="width: 18px; height: 18px; fill: currentColor; margin-left: 2px;" viewbox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"></path></svg>
+</button>
+</div>
+</div>
+</header>
+<main class="page-content">
+<div class="section-header">
+<h2 class="section-title">Hall of Fame</h2>
+</div>
+<div style="background: var(--bg-card); border-radius: var(--border-radius-md); padding: 25px;">
+<table style="width: 100%; border-collapse: collapse; text-align: left;">
+<thead>
+<tr style="border-bottom: 2px solid rgba(255,255,255,0.05); color: var(--text-muted);">
+<th style="padding: 15px;">Rank</th>
+<th style="padding: 15px;">Player</th>
+<th style="padding: 15px;">Score</th>
+</tr>
+</thead>
+<tbody id="leaderboard-body">
+<!-- Data dynamically loaded -->
+</tbody>
+</table>
+</div>
+</main>
+</div>
+</div>
+<script src="/config.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<link href="styles.css" rel="stylesheet"/> <!-- legacy css fallback for components if any -->
+<script src="/main.js" type="module"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('/api/leaderboard')
+        .then(r => r.json())
+        .then(data => {
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = '';
+            data.forEach((user, index) => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                let rankColor = 'var(--text-muted)';
+                if(index === 0) rankColor = 'gold';
+                if(index === 1) rankColor = 'silver';
+                if(index === 2) rankColor = '#cd7f32'; // bronze
+                
+                tr.innerHTML = `
+                    <td style="padding: 15px; font-weight:bold; color:${rankColor};">#${index+1}</td>
+                    <td style="padding: 15px; display:flex; align-items:center; gap:10px;">
+                        <div style="width:30px; height:30px; background:var(--accent-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">${user.avatar || 'A'}</div>
+                        <div>
+                            <div style="font-weight:bold;">${user.username}</div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">Level ${user.level}</div>
+                        </div>
+                    </td>
+                    <td style="padding: 15px; font-family:monospace; font-size:1.1rem;">
+                        ${user.max_score || 0} pts
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }).catch(err => {
+            const t = document.getElementById('leaderboard-body');
+            if(t) t.innerHTML = '<tr><td colspan="3" style="padding:15px; text-align:center;">Failed to load data</td></tr>';
+        });
+});
+</script>
+</body>
+</html>

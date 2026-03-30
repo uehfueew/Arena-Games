@@ -1,0 +1,22 @@
+@import url("variables.css");
+@import url("reset.css");
+@import url("layout.css");
+@import url("components.css");
+
+/* Extraneous Specific Overrides */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  margin-top: 40px;
+}
+.section-header:first-child { margin-top: 0; }
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-title svg { fill: var(--accent-primary); width: 24px; height: 24px; }
