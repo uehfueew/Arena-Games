@@ -1,84 +1,92 @@
 // Copilot: Build full Tic-Tac-Toe game logic.
-export let board = Array(9).fill(null);
-export let currentPlayer = 'X';
-export let gameActive = true;
+export const Game = {
+    board: Array(9).fill(null),
+    currentPlayer: 'X',
+    gameActive: true,
+    winConditions: [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6]
+    ],
 
-const winConditions = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-    [0, 3, 6], [1, 4, 7], [2, 5, 8], // Cols
-    [0, 4, 8], [2, 4, 6]             // Diagonals
-];
-
-export function initializeBoard(onCellClick) {
-    const boardEl = document.getElementById('board');
-    if (boardEl && boardEl.children.length === 0) {
-        for (let i = 0; i < 9; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'cell tic-tac-cell';
-            cell.dataset.index = i;
-            boardEl.appendChild(cell);
+    initializeBoard: function(onCellClick) {
+        const boardEl = document.getElementById('board');
+        if (boardEl && boardEl.children.length === 0) {
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell tic-tac-cell';
+                cell.dataset.index = i;
+                boardEl.appendChild(cell);
+            }
         }
-    }
-    document.querySelectorAll('.cell').forEach(cell => {
-        cell.addEventListener('click', (e) => onCellClick(e.target.dataset.index));
-    });
-}
+        document.querySelectorAll('.cell').forEach(cell => {
+            const newCell = cell.cloneNode(true);
+            cell.parentNode.replaceChild(newCell, cell);
+            newCell.addEventListener('click', (e) => onCellClick(e.target.dataset.index));
+        });
+    },
 
-export function handleClick(index) {
-    if (board[index] !== null || !gameActive) return false;
-    board[index] = currentPlayer;
-    updateUI(index, currentPlayer);
-    return true; // Move executed
-}
+    handleClick: function(index) {
+        if (this.board[index] !== null || ! this.gameActive) return false;
+        this.board[index] = this.currentPlayer;
+        this.updateUI(index, this.currentPlayer);
+        return true; 
+    },
 
-export function checkWin(testBoard = board) {
-    for (let condition of winConditions) {
-        let [a, b, c] = condition;
-        if (testBoard[a] && testBoard[a] === testBoard[b] && testBoard[a] === testBoard[c]) {
-            return testBoard[a]; // Returns 'X' or 'O'
+    checkWin: function(testBoard = this.board) {
+        for (let condition of this.winConditions) {
+            let [a, b, c] = condition;
+            if (testBoard[a] && testBoard[a] !== 'LOCKED' && testBoard[a] === testBoard[b] && testBoard[a] === testBoard[c]) {
+                return testBoard[a]; 
+            }
         }
-    }
-    if (!testBoard.includes(null)) return 'Draw'; // It's a draw
-    return null; // Game continues
-}
+        if (!testBoard.includes(null)) return 'Draw'; 
+        return null; 
+    },
 
-export function checkGameState() {
-    const result = checkWin(board);
-    if (result) {
-        gameActive = false;
-        const statusEl = document.getElementById('status');
-        if (result === 'Draw') {
-            statusEl.textContent = "It's a Draw!";
+    checkGameState: function() {
+        const result = this.checkWin(this.board);
+        if (result) {
+            this.gameActive = false;
+            const statusEl = document.getElementById('status');
+            if (result === 'Draw') {
+                statusEl.textContent = "It's a Draw!";
+            } else {
+                statusEl.textContent = `Player ${result} Wins!`;
+            }
+        }
+        return result;
+    },
+
+    switchPlayer: function(forcePlayer = null) {
+        if (forcePlayer) {
+            this.currentPlayer = forcePlayer;
         } else {
-            statusEl.textContent = `Player ${result} Wins!`;
+            this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
         }
-    }
-    return result;
-}
+        if (this.gameActive) {
+            document.getElementById('status').textContent = `${this.currentPlayer}'s Turn`;
+        }
+    },
 
-export function switchPlayer(forcePlayer = null) {
-    if (forcePlayer) {
-        currentPlayer = forcePlayer;
-    } else {
-        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-    }
-    if (gameActive) {
-        document.getElementById('status').textContent = `${currentPlayer}'s Turn`;
-    }
-}
+    updateUI: function(index, value) {
+        const cell = document.querySelector(`.cell[data-index='${index}']`);
+        if(cell) {
+            cell.textContent = value;
+            cell.setAttribute('data-value', value);
+            cell.style.color = value === 'X' ? '#ef4444' : '#3b82f6';
+        }
+    },
 
-function updateUI(index, value) {
-    const cell = document.querySelector(`.cell[data-index='${index}']`);
-    if(cell) {
-        cell.textContent = value;
-        cell.style.color = value === 'X' ? '#ef4444' : '#3b82f6';
+    resetGame: function() {
+        this.board.fill(null);
+        this.currentPlayer = 'X';
+        this.gameActive = true;
+        document.getElementById('status').textContent = "X's Turn";
+        document.querySelectorAll('.cell').forEach(cell => {
+            cell.textContent = '';
+            cell.classList.remove('locked-cell', 'bomb-effect', 'fading');
+        });
     }
-}
+};
 
-export function resetGame() {
-    board.fill(null);
-    currentPlayer = 'X';
-    gameActive = true;
-    document.getElementById('status').textContent = "X's Turn";
-    document.querySelectorAll('.cell').forEach(cell => cell.textContent = '');
-}

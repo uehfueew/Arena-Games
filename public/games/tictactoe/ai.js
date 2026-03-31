@@ -1,5 +1,6 @@
 // Copilot: Implement a minimax algorithm for Tic-Tac-Toe.
-import { checkWin } from './game.js';
+import { Game } from './game.js';
+const checkWin = Game.checkWin.bind(Game);
 
 export function getBestMove(board, player) {
     const opponent = player === 'X' ? 'O' : 'X';

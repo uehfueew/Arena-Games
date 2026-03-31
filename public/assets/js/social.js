@@ -30,7 +30,7 @@ function initSocials() {
     const fsBtns = document.querySelectorAll('#fullscreen-btn');
     fsBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            const container = document.getElementById('actual-game-container');
+            const container = document.getElementById('game-fullscreen-target') || document.getElementById('actual-game-container');
             if (container) {
                 if (!document.fullscreenElement) {
                     container.requestFullscreen().catch(err => {

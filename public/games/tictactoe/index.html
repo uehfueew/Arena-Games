@@ -54,24 +54,111 @@
 <main class="page-content">
 <div class="game-page-layout" style="display: flex; gap: 30px; align-items: flex-start; max-width: 1400px; margin: 0 auto; margin-bottom:40px;">
 <!-- Left Side: Game + Toolbar + Description -->
-<div class="game-left-col" style="flex: 1; min-width: 0;">
+<div id="game-fullscreen-target" class="game-left-col" style="flex: 1; min-width: 0; background: #0F101A; overflow-y: auto;">
 <!-- Game Viewport -->
 <div id="game-viewport" style="position: relative; width: 100%; min-height:600px; background: var(--bg-dark); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05);">
 <!-- BLURRED START OVERLAY -->
-<div id="game-start-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(12px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100;">
-<h2 style="font-size: 2.5rem; margin-bottom: 30px; text-shadow: 0 4px 10px rgba(0,0,0,0.8); color:#fff; font-weight:800;">Choose Game Mode</h2>
-<div style="display:flex; gap: 15px; flex-wrap:wrap; justify-content:center;">
-<button class="btn btn-primary" onclick="location.href='?mode=solo'" style="padding:12px 24px; font-size:1.1rem; border-radius:30px;">🤖 Play vs AI</button><button class="btn btn-primary" onclick="location.href='?mode=local'" style="padding:12px 24px; font-size:1.1rem; border-radius:30px;">👥 Local Multiplayer</button><button class="btn btn-primary" onclick="location.href='?mode=multi'" style="padding:12px 24px; font-size:1.1rem; border-radius:30px;">🌐 Play Online</button>
-</div>
+<div id="game-start-overlay" style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(26,28,43,0.95) 0%, rgba(15,16,26,0.98) 100%); backdrop-filter: blur(16px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; overflow-y: auto; padding: 40px 20px;">
+    
+    <div style="text-align: center; margin-bottom: 40px; animation: fadeInDown 0.6s ease-out;">
+        <h2 style="font-size: 3.5rem; margin-bottom: 10px; color: #fff; font-weight: 900; letter-spacing: 2px; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">TIC-TAC-TOE <span style="color:#ef4444;">O</span><span style="color:#3b82f6;">X</span></h2>
+        <p style="color: #aaa; font-size: 1.1rem; max-width: 600px; margin: 0 auto;">Experience the classic game completely reimagined. Choose a mode below and prove your strategic supremacy.</p>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap: 30px; width: 100%; max-width: 900px; animation: fadeInUp 0.8s ease-out;">
+        
+        <!-- Classic Modes -->
+        <div class="mode-section" style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <i class="bi bi-controller" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                <h3 style="color: #fff; font-size: 1.3rem; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Classic Action</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <button onclick="location.href='?mode=solo'" class="mode-card" style="background: linear-gradient(145deg, #2a2d43, #1A1C2B); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; transition: all 0.3s;">
+                    <h4 style="color:#fff; font-size: 1.2rem; margin:0 0 5px 0;">🤖 Play vs AI</h4>
+                    <p style="color:#888; font-size:0.85rem; margin:0;">Standard rules. Defeat the machine.</p>
+                </button>
+                <button onclick="location.href='?mode=local'" class="mode-card" style="background: linear-gradient(145deg, #2a2d43, #1A1C2B); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; transition: all 0.3s;">
+                    <h4 style="color:#fff; font-size: 1.2rem; margin:0 0 5px 0;">👥 Pass & Play</h4>
+                    <p style="color:#888; font-size:0.85rem; margin:0;">Play with a friend on the same screen.</p>
+                </button>
+                <button onclick="location.href='?mode=multi'" class="mode-card" style="background: linear-gradient(145deg, #2a2d43, #1A1C2B); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; transition: all 0.3s; position:relative; overflow:hidden;">
+                    <div style="position:absolute; top:-10px; right:-10px; background:#3b82f6; color:#fff; font-size:0.7rem; font-weight:bold; padding:15px; transform:rotate(45deg); width:60px; text-align:center;">PRO</div>
+                    <h4 style="color:#fff; font-size: 1.2rem; margin:0 0 5px 0;">🌐 Online Match</h4>
+                    <p style="color:#888; font-size:0.85rem; margin:0;">Create rooms and battle online.</p>
+                </button>
+            </div>
+        </div>
+
+        <!-- Special Modes -->
+        <div class="mode-section" style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <i class="bi bi-lightning-charge-fill" style="font-size: 1.5rem; color: #ef4444;"></i>
+                <h3 style="color: #fff; font-size: 1.3rem; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Evolution Modes</h3>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <button onclick="location.href='?mode=endless'" class="mode-card" style="background: linear-gradient(145deg, rgba(85,139,110,0.2), #1A1C2B); border: 1px solid #558B6E; border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; transition: all 0.3s;">
+                    <h4 style="color:#558B6E; font-size: 1.2rem; margin:0 0 5px 0;"><i class="bi bi-infinity"></i> Endless Mode</h4>
+                    <p style="color:#888; font-size:0.85rem; margin:0;">Memory test. Only 3 pieces allowed on the board per player!</p>
+                </button>
+                <button onclick="location.href='?mode=arcade'" class="mode-card" style="background: linear-gradient(145deg, rgba(231,76,60,0.2), #1A1C2B); border: 1px solid #e74c3c; border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; transition: all 0.3s;">
+                    <h4 style="color:#e74c3c; font-size: 1.2rem; margin:0 0 5px 0;"><i class="bi bi-joystick"></i> Arcade Mode</h4>
+                    <p style="color:#888; font-size:0.85rem; margin:0;">Chaos & Power-ups! Bomb, Lock, Erase, and Double Turn abilities.</p>
+                </button>
+                <button onclick="location.href='?mode=ultimate'" class="mode-card" style="background: linear-gradient(145deg, #1f2030, #1A1C2B); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; transition: all 0.3s; position:relative;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <h4 style="color:#fff; font-size: 1.2rem; margin:0 0 5px 0;">👑 Ultimate</h4>
+                        <span style="font-size:0.7rem; background:#fbbf24; padding:3px 6px; border-radius:4px; color:#000; font-weight:bold;">NEW</span>
+                    </div>
+                    <p style="color:#aaa; font-size:0.85rem; margin:0;">9 nested boards. Infinite strategy.</p>
+                </button>
+            </div>
+        </div>
+
+    </div>
+    
+    <style>
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .mode-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.4); filter: brightness(1.1); }
+    </style>
 </div>
 <!-- ACTUAL GAME RENDER -->
 <div id="actual-game-container" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; filter: blur(5px); transition: filter 0.5s;">
-<div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px;">
+<div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; width: 100%; justify-content: center;">
 <!-- Main Game Window -->
-<div style="flex: 3; min-width: 60%; background: var(--bg-card); border-radius: var(--border-radius-md); padding: 20px; box-shadow: var(--shadow-md); display: flex; align-items: center; justify-content: center; min-height: 500px; position:relative;">
-<div style="display:flex; flex-direction:column; align-items:center;"><h2 id="status" style="margin-bottom:15px;">Turn: X</h2><div class="tic-tac-grid" id="board" style="display:grid; grid-template-columns: repeat(3, 100px); gap: 10px; background:#1A1C2B; padding:10px; border-radius:var(--border-radius-md);"></div><button class="btn btn-primary" id="restartBtn" style="margin-top:20px;">Restart</button></div>
+<div style="flex: 2; max-width: 500px; background: var(--bg-card); border-radius: var(--border-radius-md); padding: 30px; box-shadow: var(--shadow-md); display: flex; flex-direction: column; align-items: center; position:relative; border: 1px solid rgba(255,255,255,0.1);">
+<div style="display:flex; justify-content: space-between; width: 100%; margin-bottom: 20px; font-size: 1.2rem; font-weight: bold; background: rgba(0,0,0,0.2); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+  <div style="color: #ef4444; display:flex; flex-direction:column; align-items:center;"><span>Player X</span><span id="score-X" style="font-size: 2rem;">0</span></div>
+  <div style="color: #3b82f6; display:flex; flex-direction:column; align-items:center;"><span>Player O</span><span id="score-O" style="font-size: 2rem;">0</span></div>
+</div>
+<h2 id="status" style="margin-bottom:20px; font-size: 1.5rem; letter-spacing: 1px; text-transform: uppercase;">Turn: X</h2>
+<div class="tic-tac-grid" id="board" style="display:grid; grid-template-columns: repeat(3, 100px); gap: 10px; background:#1A1C2B; padding:15px; border-radius:16px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);"></div>
+<button class="btn btn-primary" id="restartBtn" style="margin-top:30px; width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; display: none;">Play Again</button>
 </div>
 <!-- Sidebar Game Info -->
+<div style="flex: 1; max-width: 350px; background: var(--bg-card); border-radius: var(--border-radius-md); padding: 30px; box-shadow: var(--shadow-md); border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column;">
+    <h3 style="color: #fff; margin-bottom: 20px; font-size: 1.5rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;"><i class="bi bi-bar-chart-fill" style="color: #3b82f6;"></i> Session Stats</h3>
+    
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #aaa; font-weight: 600;">Total Games</span>
+            <span id="stat-total" style="color: #fff; font-size: 1.2rem; font-weight: bold;">0</span>
+        </div>
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #ef4444; font-weight: 600;">X Wins</span>
+            <span id="stat-x" style="color: #fff; font-size: 1.2rem; font-weight: bold;">0</span>
+        </div>
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #3b82f6; font-weight: 600;">O Wins</span>
+            <span id="stat-o" style="color: #fff; font-size: 1.2rem; font-weight: bold;">0</span>
+        </div>
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #f59e0b; font-weight: 600;">Draws</span>
+            <span id="stat-draws" style="color: #fff; font-size: 1.2rem; font-weight: bold;">0</span>
+        </div>
+    </div>
+</div>
 </div>
 <script src="main.js" type="module"></script>
 <div id="setup-panel" style="display:none; margin-top:10px;">
@@ -183,7 +270,7 @@
 </main>
 </div>
 </div>
-<script src="/config.js"></script>
+<script type="module" src="/config.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <!-- Fallback legacy styles for exact component mounting in specific scripts if required. -->
 <link href="/styles.css" rel="stylesheet"/>
@@ -352,4 +439,23 @@ window.showGameOver = function(title, msg, isWin) {
 };
 </script>
 </body>
-</html>
+</html><style>
+@keyframes pulseFade {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
+}
+.fading {
+    animation: pulseFade 1.5s infinite;
+    color: #ffd700 !important;
+}
+</style>
+<style>@keyframes pulseFade { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } } .fading { animation: pulseFade 1.5s infinite; color: #ffd700 !important; }</style>
+<style>
+@keyframes winPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); }
+  20% { transform: scale(1.05); box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); }
+  50% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+  100% { transform: scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); }
+}
+</style>
