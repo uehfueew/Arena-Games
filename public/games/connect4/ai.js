@@ -108,7 +108,7 @@ function minimax(board, depth, alpha, beta, maximizingPlayer, aiColor, humanColo
 
     if (maximizingPlayer) {
         let value = -Infinity;
-        let column = validLocations[Math.floor(Math.random() * validLocations.length)];
+        let bestCols = [];
         for (let col of validLocations) {
             let row = getDropRow(board, col);
             let bCopy = board.map(arr => [...arr]);
@@ -116,15 +116,17 @@ function minimax(board, depth, alpha, beta, maximizingPlayer, aiColor, humanColo
             let newScore = minimax(bCopy, depth - 1, alpha, beta, false, aiColor, humanColor).score;
             if (newScore > value) {
                 value = newScore;
-                column = col;
+                bestCols = [col];
+            } else if (newScore === value) {
+                bestCols.push(col);
             }
             alpha = Math.max(alpha, value);
             if (alpha >= beta) break;
         }
-        return { column: column, score: value };
+        return { column: bestCols[Math.floor(Math.random() * bestCols.length)], score: value };
     } else {
         let value = Infinity;
-        let column = validLocations[Math.floor(Math.random() * validLocations.length)];
+        let bestCols = [];
         for (let col of validLocations) {
             let row = getDropRow(board, col);
             let bCopy = board.map(arr => [...arr]);
@@ -132,24 +134,47 @@ function minimax(board, depth, alpha, beta, maximizingPlayer, aiColor, humanColo
             let newScore = minimax(bCopy, depth - 1, alpha, beta, true, aiColor, humanColor).score;
             if (newScore < value) {
                 value = newScore;
-                column = col;
+                bestCols = [col];
+            } else if (newScore === value) {
+                bestCols.push(col);
             }
             beta = Math.min(beta, value);
             if (alpha >= beta) break;
         }
-        return { column: column, score: value };
+        return { column: bestCols[Math.floor(Math.random() * bestCols.length)], score: value };
     }
 }
 
-export function makeAIMove(board, aiPlayer) {
+export function makeAIMove(board, aiPlayer, difficulty = 2) {
     const humanPlayer = aiPlayer === 'red' ? 'yellow' : 'red';
     let fakeBoard = board.map(arr => [...arr]);
     
-    // Depth 5 provides a strong challenge without lagging
-    let result = minimax(fakeBoard, 5, -Infinity, Infinity, true, aiPlayer, humanPlayer);
+    // Difficulty variations:
+    // 1: Depth 2, 40% random
+    // 2: Depth 4, 20% random
+    // 3: Depth 5, 5% random
+    // 4: Depth 6, 100% best
+    // 5: Depth 7, 100% best
+
+    let depth = 5;
+    let randomChance = 0;
+
+    if (difficulty === 1) { depth = 2; randomChance = 0.4; }
+    else if (difficulty === 2) { depth = 4; randomChance = 0.2; }
+    else if (difficulty === 3) { depth = 5; randomChance = 0.05; }
+    else if (difficulty === 4) { depth = 6; randomChance = 0; }
+    else if (difficulty === 5) { depth = 7; randomChance = 0; }
+
+    if (Math.random() < randomChance) {
+        const valid = getValidLocations(fakeBoard);
+        return valid[Math.floor(Math.random() * valid.length)];
+    }
+
+    let result = minimax(fakeBoard, depth, -Infinity, Infinity, true, aiPlayer, humanPlayer);
     
     if (result.column === null) {
         const valid = getValidLocations(fakeBoard);
+        if (valid.length === 0) return null;
         return valid[Math.floor(Math.random() * valid.length)];
     }
     

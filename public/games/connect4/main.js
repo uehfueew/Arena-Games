@@ -3,7 +3,7 @@ import { makeAIMove } from './ai.js';
 import { initSocket, createRoom, joinRoom, sendMove, sendRestart } from './multiplayer.js';
 
 const urlParams = new URLSearchParams(window.location.search);
-const mode = urlParams.get('mode') || 'solo'; 
+const mode = urlParams.get('mode') || 'solo';
 
 let networkPlay = false;
 let myColor = 'red';
@@ -125,5 +125,12 @@ function handleRestartLocal() {
     if (networkPlay) {
         document.getElementById('status').textContent = myColor === 'red' ? "Your Turn (Red)" : "Waiting for (Red)";
         // In network play, Red always starts
+    }
+}
+fetch('/api/record-ranked', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, result, opponentElo: userElo })
+});
     }
 }

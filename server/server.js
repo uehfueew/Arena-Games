@@ -42,7 +42,7 @@ app.post('/api/login', (req, res) => {
 
 // API: Profile Stats
 app.get('/api/profile/:username', (req, res) => {
-    db.get(`SELECT username, xp, level, tickets, avatar, snake_color FROM users WHERE username = ?`, [req.params.username], (err, user) => {
+    db.get(`SELECT username, xp, level, tickets, avatar, snake_color, elo, tictactoe_token, tictactoe_theme, tictactoe_animation FROM users WHERE username = ?`, [req.params.username], (err, user) => {
         if (err || !user) return res.status(404).json({ error: 'User not found' });
         
         db.all(`SELECT game, wins, losses, draws, high_score FROM stats WHERE username = ?`, [req.params.username], (err, stats) => {
@@ -94,6 +94,9 @@ app.post('/api/shop/buy', (req, res) => {
         let query = `UPDATE users SET tickets = tickets - ?`;
         if (type === 'avatar') query += `, avatar = ?`;
         if (type === 'snake_color') query += `, snake_color = ?`;
+        if (type === 'tictactoe_token') query += `, tictactoe_token = ?`;
+        if (type === 'tictactoe_theme') query += `, tictactoe_theme = ?`;
+        if (type === 'tictactoe_animation') query += `, tictactoe_animation = ?`;
         query += ` WHERE username = ?`;
 
         db.run(query, [cost, item, username], (err) => {
@@ -143,6 +146,53 @@ app.post('/api/record-sudoku-stats', (req, res) => {
             );
         }
         res.json({ success: true });
+    });
+});
+
+// API: Wager Match Result
+app.post('/api/record-wager', (req, res) => {
+    const { username, result, wagerAmount } = req.body;
+    if (!username || !result || !wagerAmount) return res.status(400).json({ error: 'Missing data' });
+    
+    db.get(`SELECT tickets FROM users WHERE username = ?`, [username], (err, user) => {
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        
+        let ticketsChange = 0;
+        if (result === 'win') ticketsChange = parseInt(wagerAmount); // Winner gets their money + opponent's money (net +wagerAmount)
+        else if (result === 'loss') ticketsChange = -parseInt(wagerAmount); // Loser loses wagerAmount
+        
+        if (ticketsChange < 0 && user.tickets + ticketsChange < 0) {
+            ticketsChange = -user.tickets;
+        }
+
+        db.run(`UPDATE users SET tickets = tickets + ? WHERE username = ?`, [ticketsChange, username], (err) => {
+            if(err) return res.status(500).json({error: err.message});
+            res.json({ success: true, ticketsChange });
+        });
+    });
+});
+
+// API: Ranked Match Result
+app.post('/api/record-ranked', (req, res) => {
+    const { username, result, opponentElo } = req.body; // Result: 'win', 'loss', 'draw'
+    if (!username || !result) return res.status(400).json({ error: 'Missing data' });
+    
+    db.get(`SELECT elo FROM users WHERE username = ?`, [username], (err, user) => {
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        
+        let currentElo = user.elo || 1000;
+        let oppElo = opponentElo || 1000;
+        let K = 32;
+        let expectedScore = 1 / (1 + Math.pow(10, (oppElo - currentElo) / 400));
+        let actualScore = result === 'win' ? 1 : (result === 'draw' ? 0.5 : 0);
+        
+        let newElo = Math.round(currentElo + K * (actualScore - expectedScore));
+        if(newElo < 0) newElo = 0;
+        
+        db.run(`UPDATE users SET elo = ? WHERE username = ?`, [newElo, username], (err) => {
+            if(err) return res.status(500).json({error: err.message});
+            res.json({ success: true, newElo, eloChange: newElo - currentElo });
+        });
     });
 });
 
@@ -226,6 +276,27 @@ const chatHistory = [];
 io.on('connection', (socket) => {
     // Send existing history to the newly connected socket
     socket.emit('globalChatHistory', chatHistory);
+
+    // Registration for real-time notifications/invites
+    socket.on('registerUser', (username) => {
+        if (username) {
+            socket.join('user_' + username);
+            console.log(username + " registered for real-time events");
+        }
+    });
+
+    socket.on('sendGameInvite', (data) => {
+        // data: { from: 'username', to: 'friend', game: 'tictactoe', link: '...' }
+        db.get(`SELECT username FROM users WHERE username = ?`, [data.to], (err, user) => {
+            if (user) {
+                // Send real-time
+                io.to('user_' + data.to).emit('receiveGameInvite', data);
+                // Also save to notifications
+                db.run(`INSERT INTO notifications (user, message, time_ago, read) VALUES (?, ?, ?, 0)`, 
+                    [data.to, `${data.from} invited you to play ${data.game}!`, 'Just now']);
+            }
+        });
+    });
 
     socket.on('globalChat', (messageObj) => {
         chatHistory.push(messageObj);

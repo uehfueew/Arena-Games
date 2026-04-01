@@ -1,461 +1,466 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<title>Arcade Hub | Tic-Tac-Toe Arena</title>
-<link href="/assets/css/main.css" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<style>
-        .tic-tac-cell { width:100px; height:100px; background:var(--bg-main); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:bold; cursor:pointer; color:#fff; }
-        .c4-cell { width:40px; height:40px; background:var(--bg-main); border-radius:50%; margin:auto; }
-        #sudoku-board { display:grid; grid-template-columns: repeat(9, 35px); gap:2px; background:#fff; border: 2px solid #fff; }
-        .sudoku-cell { width: 35px; height: 35px; text-align: center; font-size: 1.2rem; outline: none; border: 1px solid #ddd; }
-    </style>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/></head>
-<body>
-<div class="app-container">
-<!-- SIDEBAR -->
-<aside class="sidebar" id="mainSidebar">
-<div class="sidebar-header">
-<span>Arcade</span>Hub
-            </div>
-<ul class="sidebar-nav">
-<div class="sidebar-nav-title">Menu</div>
-<li>
-<a href="/index.html">
-<svg viewbox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path></svg>
-                        Home
-                    </a>
-</li>
-<li>
-<a href="/leaderboards.html">
-<svg viewbox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V7h10v2z"></path></svg>
-                        Leaderboards
-                    </a>
-</li>
-</ul>
-</aside>
-<!-- MAIN WRAPPER -->
-<div class="main-wrapper">
-<!-- TOPBAR -->
-<header class="topbar">
-<div class="topbar-search">
-<svg viewbox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path></svg>
-<input placeholder="Search..." type="text"/>
-</div>
-<div class="topbar-actions">
-<div id="auth-links" style="display: flex; gap: 10px;">
-<a class="btn btn-outline" href="/login.html" style="padding: 8px 16px;">Log in</a>
-<a class="btn btn-primary" href="/signup.html" style="padding: 8px 16px;">Sign up</a>
-</div>
-</div>
-</header>
-<main class="page-content">
-<div class="game-page-layout" style="display: flex; gap: 30px; align-items: flex-start; max-width: 1400px; margin: 0 auto; margin-bottom:40px;">
-<!-- Left Side: Game + Toolbar + Description -->
-<div id="game-fullscreen-target" class="game-left-col" style="flex: 1; min-width: 0; background: #0F101A; overflow-y: auto;">
-<!-- Game Viewport -->
-<div id="game-viewport" style="position: relative; width: 100%; min-height:600px; background: var(--bg-dark); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05);">
-<!-- BLURRED START OVERLAY -->
-<div id="game-start-overlay" style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(26,28,43,0.95) 0%, rgba(15,16,26,0.98) 100%); backdrop-filter: blur(16px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; overflow-y: auto; padding: 40px 20px;">
-    
-    <div style="text-align: center; margin-bottom: 40px; animation: fadeInDown 0.6s ease-out;">
-        <h2 style="font-size: 3.5rem; margin-bottom: 10px; color: #fff; font-weight: 900; letter-spacing: 2px; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">TIC-TAC-TOE <span style="color:#ef4444;">O</span><span style="color:#3b82f6;">X</span></h2>
-        <p style="color: #aaa; font-size: 1.1rem; max-width: 600px; margin: 0 auto;">Experience the classic game completely reimagined. Choose a mode below and prove your strategic supremacy.</p>
-    </div>
-
-    <div style="display:flex; flex-direction:column; gap: 30px; width: 100%; max-width: 900px; animation: fadeInUp 0.8s ease-out;">
-        
-        <!-- Classic Modes -->
-        <div class="mode-section" style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-                <i class="bi bi-controller" style="font-size: 1.5rem; color: #3b82f6;"></i>
-                <h3 style="color: #fff; font-size: 1.3rem; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Classic Action</h3>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                <button onclick="location.href='?mode=solo'" class="mode-card" style="background: linear-gradient(145deg, #2a2d43, #1A1C2B); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; transition: all 0.3s;">
-                    <h4 style="color:#fff; font-size: 1.2rem; margin:0 0 5px 0;">🤖 Play vs AI</h4>
-                    <p style="color:#888; font-size:0.85rem; margin:0;">Standard rules. Defeat the machine.</p>
-                </button>
-                <button onclick="location.href='?mode=local'" class="mode-card" style="background: linear-gradient(145deg, #2a2d43, #1A1C2B); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; transition: all 0.3s;">
-                    <h4 style="color:#fff; font-size: 1.2rem; margin:0 0 5px 0;">👥 Pass & Play</h4>
-                    <p style="color:#888; font-size:0.85rem; margin:0;">Play with a friend on the same screen.</p>
-                </button>
-                <button onclick="location.href='?mode=multi'" class="mode-card" style="background: linear-gradient(145deg, #2a2d43, #1A1C2B); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; transition: all 0.3s; position:relative; overflow:hidden;">
-                    <div style="position:absolute; top:-10px; right:-10px; background:#3b82f6; color:#fff; font-size:0.7rem; font-weight:bold; padding:15px; transform:rotate(45deg); width:60px; text-align:center;">PRO</div>
-                    <h4 style="color:#fff; font-size: 1.2rem; margin:0 0 5px 0;">🌐 Online Match</h4>
-                    <p style="color:#888; font-size:0.85rem; margin:0;">Create rooms and battle online.</p>
-                </button>
-            </div>
-        </div>
-
-        <!-- Special Modes -->
-        <div class="mode-section" style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-                <i class="bi bi-lightning-charge-fill" style="font-size: 1.5rem; color: #ef4444;"></i>
-                <h3 style="color: #fff; font-size: 1.3rem; margin: 0; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">Evolution Modes</h3>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                <button onclick="location.href='?mode=endless'" class="mode-card" style="background: linear-gradient(145deg, rgba(85,139,110,0.2), #1A1C2B); border: 1px solid #558B6E; border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; transition: all 0.3s;">
-                    <h4 style="color:#558B6E; font-size: 1.2rem; margin:0 0 5px 0;"><i class="bi bi-infinity"></i> Endless Mode</h4>
-                    <p style="color:#888; font-size:0.85rem; margin:0;">Memory test. Only 3 pieces allowed on the board per player!</p>
-                </button>
-                <button onclick="location.href='?mode=arcade'" class="mode-card" style="background: linear-gradient(145deg, rgba(231,76,60,0.2), #1A1C2B); border: 1px solid #e74c3c; border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; transition: all 0.3s;">
-                    <h4 style="color:#e74c3c; font-size: 1.2rem; margin:0 0 5px 0;"><i class="bi bi-joystick"></i> Arcade Mode</h4>
-                    <p style="color:#888; font-size:0.85rem; margin:0;">Chaos & Power-ups! Bomb, Lock, Erase, and Double Turn abilities.</p>
-                </button>
-                <button onclick="location.href='?mode=ultimate'" class="mode-card" style="background: linear-gradient(145deg, #1f2030, #1A1C2B); border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; padding: 20px; text-align: left; cursor: pointer; transition: all 0.3s; position:relative;">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <h4 style="color:#fff; font-size: 1.2rem; margin:0 0 5px 0;">👑 Ultimate</h4>
-                        <span style="font-size:0.7rem; background:#fbbf24; padding:3px 6px; border-radius:4px; color:#000; font-weight:bold;">NEW</span>
-                    </div>
-                    <p style="color:#aaa; font-size:0.85rem; margin:0;">9 nested boards. Infinite strategy.</p>
-                </button>
-            </div>
-        </div>
-
-    </div>
-    
+    <meta charset="utf-8"/>
+    <title>Arcade Hub | Tic-Tac-Toe Arena</title>
+    <link href="/assets/css/main.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
     <style>
+        .tic-tac-cell { 
+            width:100px; height:100px; 
+            background: rgba(255, 255, 255, 0.07); 
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius:18px; 
+            display:flex; align-items:center; justify-content:center; 
+            font-size:3.5rem; font-weight:900; 
+            cursor:pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 0 15px rgba(255,255,255,0.05);
+        }
+        .tic-tac-cell:hover { 
+            background: rgba(255, 255, 255, 0.12); 
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 0 25px rgba(255,255,255,0.1);
+        }
+        .tic-tac-cell[data-value="X"] { color: #ef4444 !important; text-shadow: 0 0 25px rgba(239, 68, 68, 0.5); }
+        .tic-tac-cell[data-value="O"] { color: #3b82f6 !important; text-shadow: 0 0 25px rgba(59, 130, 246, 0.5); }
+        
+        #game-viewport:fullscreen { width: 100vw; height: 100vh; background: #0F101A; border: none; border-radius: 0; box-shadow: none; display: flex; align-items: center; justify-content: center; }
+        #game-viewport:-webkit-full-screen { width: 100vw; height: 100vh; background: #0F101A; border: none; border-radius: 0; box-shadow: none; display: flex; align-items: center; justify-content: center; }
+        
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .mode-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.4); filter: brightness(1.1); }
+        
+        .fading { animation: pulseFade 1.5s infinite; color: #ffd700 !important; }
+        @keyframes pulseFade { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+        
+        .modal-overlay.hidden { display: none !important; }
+
+        .mode-section-modern { width: 100%; }
+        .section-title-modern { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 3px; color: #8b8f9c; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; font-weight: 800; }
+        .section-title-modern i { color: #6c5ce7; font-size: 1.2rem; }
+        .mode-options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; }
+        
+        .mode-box { border-radius: 28px; padding: 2px; position: relative; overflow: hidden; transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1); min-height: 280px; }
+        .mode-box:hover { transform: translateY(-5px); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .mode-content-inner { background: #151621; border-radius: 26px; padding: 30px; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; position: relative; z-index: 1; }
+        
+        /* Gradients */
+        .classic-grad { background: linear-gradient(135deg, #3b82f633 0%, #151621 100%); border: 1px solid #3b82f633; }
+        .endless-grad { background: linear-gradient(135deg, #10b98133 0%, #151621 100%); border: 1px solid #10b98133; }
+        .arcade-grad { background: linear-gradient(135deg, #ef444433 0%, #151621 100%); border: 1px solid #ef444433; }
+        .ultimate-grad { background: linear-gradient(135deg, #6366f133 0%, #151621 100%); border: 1px solid #6366f133; }
+
+        .mode-main-info h4 { margin: 0 0 8px 0; font-size: 1.8rem; color: #fff; font-weight: 800; letter-spacing: -0.5px; }
+        .mode-main-info p { margin: 0 0 25px 0; font-size: 1rem; color: #8b8f9c; font-weight: 500; }
+        
+        .mode-rows { display: flex; flex-direction: column; gap: 5px; }
+        .mode-row-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: #666; font-weight: 800; margin-bottom: 5px; }
+        
+        .mode-controls { display: flex; gap: 12px; margin-bottom: 15px; }
+        .play-sub-btn { flex: 1; background: #202330; border: 1px solid rgba(255,255,255,0.06); color: #fff; padding: 12px; border-radius: 14px; cursor: pointer; font-size: 0.85rem; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .play-sub-btn:hover { background: #292d3e; border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+        
+        .ranked-main-btn { background: #6c5ce71a; border: 1px solid #6c5ce74d; color: #fff; padding: 16px 20px; border-radius: 16px; cursor: pointer; transition: all 0.3s; display: flex; justify-content: space-between; align-items: center; width: 100%; box-shadow: inset 0 0 20px #6c5ce70d; font-weight: 800; font-size: 0.95rem; text-decoration: none; }
+        .ranked-main-btn:hover { background: #6c5ce7; border-color: #6c5ce7; box-shadow: 0 10px 25px #6c5ce74d; transform: scale(1.02); }
+        .elo-preview { font-size: 0.8rem; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 8px; color: #a855f7; font-weight: 900; }
+        .ranked-main-btn:hover .elo-preview { color: #fff; background: rgba(255,255,255,0.2); }
+        .btn:hover { background: rgba(255,255,255,0.1); filter: brightness(1.2); }
+        .btn-outline:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); color: #fff; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4); }
+        
+        .play-sub-btn:hover { background: #292d3e; border-color: rgba(255,255,255,0.15); transform: translateY(-2px); filter: brightness(1.1); }
+        .ranked-main-btn:hover { background: #6c5ce7; border-color: #6c5ce7; box-shadow: 0 10px 25px #6c5ce74d; transform: scale(1.02); filter: brightness(1.1); }
+
+        @media (max-width: 1000px) { .mode-options-grid { grid-template-columns: 1fr; } }
     </style>
-</div>
-<!-- ACTUAL GAME RENDER -->
-<div id="actual-game-container" style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; filter: blur(5px); transition: filter 0.5s;">
-<div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 30px; width: 100%; justify-content: center;">
-<!-- Main Game Window -->
-<div style="flex: 2; max-width: 500px; background: var(--bg-card); border-radius: var(--border-radius-md); padding: 30px; box-shadow: var(--shadow-md); display: flex; flex-direction: column; align-items: center; position:relative; border: 1px solid rgba(255,255,255,0.1);">
-<div style="display:flex; justify-content: space-between; width: 100%; margin-bottom: 20px; font-size: 1.2rem; font-weight: bold; background: rgba(0,0,0,0.2); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-  <div style="color: #ef4444; display:flex; flex-direction:column; align-items:center;"><span>Player X</span><span id="score-X" style="font-size: 2rem;">0</span></div>
-  <div style="color: #3b82f6; display:flex; flex-direction:column; align-items:center;"><span>Player O</span><span id="score-O" style="font-size: 2rem;">0</span></div>
-</div>
-<h2 id="status" style="margin-bottom:20px; font-size: 1.5rem; letter-spacing: 1px; text-transform: uppercase;">Turn: X</h2>
-<div class="tic-tac-grid" id="board" style="display:grid; grid-template-columns: repeat(3, 100px); gap: 10px; background:#1A1C2B; padding:15px; border-radius:16px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);"></div>
-<button class="btn btn-primary" id="restartBtn" style="margin-top:30px; width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; display: none;">Play Again</button>
-</div>
-<!-- Sidebar Game Info -->
-<div style="flex: 1; max-width: 350px; background: var(--bg-card); border-radius: var(--border-radius-md); padding: 30px; box-shadow: var(--shadow-md); border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column;">
-    <h3 style="color: #fff; margin-bottom: 20px; font-size: 1.5rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;"><i class="bi bi-bar-chart-fill" style="color: #3b82f6;"></i> Session Stats</h3>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet"/>
+</head>
+<body style="margin:0; padding:0; overflow-x:hidden; background:#0F101A; font-family: 'Inter', sans-serif;">
+
+<div id="game-viewport" style="width:100vw; height:100vh; background:#0F101A; display:flex; flex-direction:column; position: relative; overflow-y: auto;">
     
-    <div style="display: flex; flex-direction: column; gap: 15px;">
-        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: #aaa; font-weight: 600;">Total Games</span>
-            <span id="stat-total" style="color: #fff; font-size: 1.2rem; font-weight: bold;">0</span>
+    <!-- START OVERLAY -->
+    <div id="game-start-overlay" style="position: absolute; top: 0; left: 0; width: 100%; min-height: 100%; background: linear-gradient(135deg, rgba(26,28,43,0.95) 0%, rgba(15,16,26,0.98) 100%); display: flex; flex-direction: column; align-items: center; z-index: 100; padding: 40px 20px;">
+        
+        <!-- TOP NAVIGATION -->
+        <div style="width: 100%; max-width: 1100px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; animation: fadeInDown 0.5s ease-out;">
+            <button onclick="location.href='/index.html'" class="btn btn-outline" style="padding: 10px 20px; border-radius: 30px; font-size: 0.9rem; color: #fff; cursor: pointer; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05);">
+                <i class="bi bi-arrow-left-short" style="font-size: 1.2rem;"></i> All Games
+            </button>
+            <div style="display: flex; gap: 12px;">
+                <button onclick="openModal('inGameStatsModal')" class="btn btn-outline" style="padding: 10px 20px; border-radius: 30px; font-size: 0.9rem; color: #fff; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); cursor: pointer;">
+                    <i class="bi bi-bar-chart-fill" style="margin-right: 8px;"></i> Statistics
+                </button>
+                <button onclick="openModal('rankedRoadmapModal')" class="btn btn-outline" style="padding: 10px 20px; border-radius: 30px; font-size: 0.9rem; color: #fbbf24; border: 1px solid #fbbf24; background: rgba(251,191,36,0.08); cursor: pointer;">
+                    <i class="bi bi-map-fill" style="margin-right: 8px;"></i> Roadmap
+                </button>
+            </div>
         </div>
-        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: #ef4444; font-weight: 600;">X Wins</span>
-            <span id="stat-x" style="color: #fff; font-size: 1.2rem; font-weight: bold;">0</span>
+
+        <div style="text-align: center; margin-bottom: 40px; animation: fadeInDown 0.6s ease-out;">
+            <h2 style="font-size: 3.5rem; margin-bottom: 5px; color: #fff; font-weight: 900; letter-spacing: -2px; text-shadow: 0 5px 40px rgba(0,0,0,0.8);">TIC-TAC-TOE <span style="color:#ef4444;">O</span><span style="color:#3b82f6;">X</span></h2>
+            <p style="color: #8b8f9c; font-size: 1.1rem; max-width: 600px; margin: 0 auto; letter-spacing: 0.5px;">Master the grid. Rise through the ranks.</p>
         </div>
-        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: #3b82f6; font-weight: 600;">O Wins</span>
-            <span id="stat-o" style="color: #fff; font-size: 1.2rem; font-weight: bold;">0</span>
+
+        <div style="display:flex; flex-direction:column; gap: 40px; width: 100%; max-width: 1100px; animation: fadeInUp 0.8s ease-out; margin-bottom: 100px;">
+            
+            <!-- MODE GROUP: CLASSIC -->
+            <div class="mode-section-modern">
+                <div class="section-title-modern"><i class="bi bi-grid-3x3-gap"></i> Classic Domain</div>
+                <div class="mode-options-grid">
+                    <div class="mode-box classic-grad">
+                        <div class="mode-content-inner">
+                            <div class="mode-main-info">
+                                <h4>Classic 3x3</h4>
+                                <p>Standard rules, ultimate skill.</p>
+                            </div>
+                            <div class="mode-rows">
+                                <div class="mode-row-label">Practice</div>
+                                <div class="mode-controls">
+                                    <button onclick="location.href='?mode=solo'" class="play-sub-btn"><i class="bi bi-robot"></i> VS AI</button>
+                                    <button onclick="location.href='?mode=local'" class="play-sub-btn"><i class="bi bi-people-fill"></i> LOCAL</button>
+                                </div>
+                                <div class="mode-row-label">Competitive</div>
+                                <button onclick="location.href='?mode=ranked_solo'" class="ranked-main-btn">
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <i class="bi bi-trophy-fill" style="color:#a855f7;"></i>
+                                        <span>PLAY RANKED</span>
+                                    </div>
+                                    <span class="elo-preview">ELO: 1000</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mode-box endless-grad">
+                        <div class="mode-content-inner">
+                            <div class="mode-main-info">
+                                <h4>Endless Flow</h4>
+                                <p>Pieces fade. Strategy adapts.</p>
+                            </div>
+                            <div class="mode-rows">
+                                <div class="mode-row-label">Practice</div>
+                                <div class="mode-controls">
+                                    <button onclick="location.href='?mode=endless_ai'" class="play-sub-btn"><i class="bi bi-robot"></i> VS AI</button>
+                                    <button onclick="location.href='?mode=endless'" class="play-sub-btn"><i class="bi bi-people-fill"></i> LOCAL</button>
+                                </div>
+                                <div class="mode-row-label">Competitive</div>
+                                <button onclick="location.href='?mode=ranked_endless'" class="ranked-main-btn">
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <i class="bi bi-trophy-fill" style="color:#a855f7;"></i>
+                                        <span>PLAY RANKED</span>
+                                    </div>
+                                    <span class="elo-preview">ELO: 1000</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODE GROUP: EVOLUTION -->
+            <div class="mode-section-modern">
+                <div class="section-title-modern"><i class="bi bi-lightning-fill"></i> Chaos & Scale</div>
+                <div class="mode-options-grid">
+                    <div class="mode-box arcade-grad">
+                        <div class="mode-content-inner">
+                            <div class="mode-main-info">
+                                <h4>Arcade Chaos</h4>
+                                <p>Bombs, Shields, and Grid Shifts.</p>
+                            </div>
+                            <div class="mode-rows">
+                                <div class="mode-row-label">Practice</div>
+                                <div class="mode-controls">
+                                    <button onclick="location.href='?mode=arcade_ai'" class="play-sub-btn"><i class="bi bi-robot"></i> VS AI</button>
+                                    <button onclick="location.href='?mode=arcade'" class="play-sub-btn"><i class="bi bi-people-fill"></i> LOCAL</button>
+                                </div>
+                                <div class="mode-row-label">Competitive</div>
+                                <button onclick="location.href='?mode=ranked_arcade'" class="ranked-main-btn">
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <i class="bi bi-trophy-fill" style="color:#a855f7;"></i>
+                                        <span>PLAY RANKED</span>
+                                    </div>
+                                    <span class="elo-preview">ELO: 1000</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mode-box ultimate-grad">
+                        <div class="mode-content-inner">
+                            <div class="mode-main-info">
+                                <h4>Ultimate 9x9</h4>
+                                <p>Fractal complexity. Win the big grid.</p>
+                            </div>
+                            <div class="mode-rows">
+                                <div class="mode-row-label">Practice</div>
+                                <div class="mode-controls">
+                                    <button onclick="location.href='?mode=ultimate_ai'" class="play-sub-btn"><i class="bi bi-robot"></i> VS AI</button>
+                                    <button onclick="location.href='?mode=ultimate'" class="play-sub-btn"><i class="bi bi-people-fill"></i> LOCAL</button>
+                                </div>
+                                <div class="mode-row-label">Competitive</div>
+                                <button onclick="location.href='?mode=ranked_ultimate'" class="ranked-main-btn">
+                                    <div style="display:flex; align-items:center; gap:12px;">
+                                        <i class="bi bi-trophy-fill" style="color:#a855f7;"></i>
+                                        <span>PLAY RANKED</span>
+                                    </div>
+                                    <span class="elo-preview">ELO: 1000</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: #f59e0b; font-weight: 600;">Draws</span>
-            <span id="stat-draws" style="color: #fff; font-size: 1.2rem; font-weight: bold;">0</span>
+    </div>
+
+    <!-- ACTUAL GAME RENDER -->
+    <div id="actual-game-container" style="width: 100%; min-height: 100%; display: none; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px 20px; background: #0F101A; z-index: 50;">
+        <div style="width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center;">
+            <!-- ACTION BAR TOP -->
+            <div style="width: 100%; display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center;">
+                <button class="btn btn-outline ttt-nav-btn" onclick="location.href='index.html'" style="padding: 8px 16px; border-radius: 12px; background: #202330; border: 1px solid rgba(255,255,255,0.08); color: #8b8f9c; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s;">
+                    <i class="bi bi-grid-fill"></i> MODES
+                </button>
+
+                <div id="ranked-ui-hub" style="display: none; background: rgba(0,0,0,0.4); padding: 5px 15px; border-radius: 30px; border: 2px solid #a855f7; display: flex; align-items: center; gap: 10px; box-shadow: 0 0 20px rgba(168,85,247,0.15); backdrop-filter: blur(5px);">
+                    <div id="ranked-mini-badge" style="width: 30px; height: 30px; background: #a855f7; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">
+                         <i class="bi bi-shield-shaded" style="font-size: 1rem; color: #fff;"></i>
+                    </div>
+                    <div style="display: flex; flex-direction: column; justify-content: center;">
+                        <span id="ranked-mini-label" style="font-size: 0.65rem; color: #a855f7; text-transform: uppercase; font-weight: 900; line-height: 1;">Ranked</span>
+                        <span id="ranked-mini-elo" style="font-size: 0.85rem; font-weight: 800; color: #fff; margin-top: 2px;">ELO: 1000</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary ttt-nav-btn" onclick="openModal('inviteModal')" style="padding: 8px 18px; border-radius: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.85rem;">
+                    <i class="bi bi-person-plus-fill"></i> Invite
+                </button>
+            </div>
+
+            <div style="width: 100%; min-height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="display:flex; justify-content: space-between; width: 100%; max-width: 400px; margin-bottom: 30px; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(10px);">
+                    <div style="color: #ef4444; text-align: center; flex: 1;">
+                        <span style="font-size: 0.7rem; text-transform: uppercase; color: #8b8f9c; letter-spacing: 2px; font-weight: 800;">Player X</span>
+                        <div id="score-X" style="font-size: 2.5rem; font-weight: 900; text-shadow: 0 0 20px rgba(239,68,68,0.3);">0</div>
+                    </div>
+                    <div style="width: 1px; background: rgba(255,255,255,0.1); margin: 0 20px;"></div>
+                    <div style="color: #3b82f6; text-align: center; flex: 1;">
+                        <span style="font-size: 0.7rem; text-transform: uppercase; color: #8b8f9c; letter-spacing: 2px; font-weight: 800;">Player O</span>
+                        <div id="score-O" style="font-size: 2.5rem; font-weight: 900; text-shadow: 0 0 20px rgba(59,130,246,0.3);">0</div>
+                    </div>
+                </div>
+                
+                <h2 id="status" style="margin-bottom:30px; font-size: 1rem; letter-spacing: 4px; text-transform: uppercase; font-weight: 900; color: #fff; background: rgba(255,255,255,0.05); padding: 8px 20px; border-radius: 30px;">Turn: X</h2>
+                
+                <div id="board" style="display:grid; grid-template-columns: repeat(3, 100px); gap: 15px; background: transparent; padding: 0; border: none;">
+                    <!-- Cells are handled by main.js -->
+                </div>
+                
+                <div id="setup-panel" style="display:none; width: 100%; max-width: 400px; margin-top: 30px; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.08);">
+                    <button class="btn btn-outline" id="createBtn" style="margin-bottom:12px; width:100%; padding: 14px; cursor: pointer; border-radius: 12px; font-weight: 700;">Create Private Arena</button>
+                    <div style="display:flex; gap:10px;">
+                        <input id="roomInput" placeholder="Join Code..." style="flex:1; padding:14px; border-radius:12px; background:#0F101A; border:1px solid rgba(255,255,255,0.1); color:#fff; font-weight: 600;" type="text"/>
+                        <button class="btn btn-primary" id="joinBtn" style="padding: 0 25px; cursor: pointer; border-radius: 12px; font-weight: 700;">Join</button>
+                    </div>
+                    <div id="roomDisplay" style="margin-top:15px; color:#8b8f9c; font-size:0.8rem; text-align: center; font-weight: 700;"></div>
+                </div>
+
+                <button class="btn btn-primary" id="restartBtn" style="margin-top:50px; width: 100%; max-width: 400px; padding: 22px; font-size: 1.2rem; border-radius: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 3px; display: none; cursor: pointer; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: none;">REMATCH</button>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- RANKED ROADMAP MODAL -->
+<div class="modal-overlay hidden" id="rankedRoadmapModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; justify-content: center; align-items: center; backdrop-filter: blur(20px);">
+    <div class="modal-content modern-modal" style="background: #0f1013; padding: 50px; border-radius: 30px; width: 95%; max-width: 800px; color: white; border: 1px solid rgba(255,255,255,0.1); position: relative;">
+        <button onclick="closeModal('rankedRoadmapModal')" style="position: absolute; top: 25px; right: 25px; background: transparent; border: none; color: #8b8f9c; font-size: 1.5rem; cursor: pointer;"><i class="bi bi-x-lg"></i></button>
+        <h2 style="font-size: 2.2rem; margin-bottom: 40px; text-align: center; font-weight: 800; color: #fff;">Ranked Ascension</h2>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div style="display: flex; align-items: center; gap: 20px; background: #191b23; padding: 20px; border-radius: 20px; border-left: 6px solid #cd7f32;">
+                <div style="width: 60px; height: 60px; background: #cd7f32; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;"><i class="bi bi-shield"></i></div>
+                <div><h4 style="margin: 0; font-size: 1.2rem; color: #fff;">BRONZE</h4><p style="margin: 5px 0 0 0; color: #8b8f9c;">0 - 1199 ELO. The beginning of the journey.</p></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 20px; background: #191b23; padding: 20px; border-radius: 20px; border-left: 6px solid #bdc3c7;">
+                <div style="width: 60px; height: 60px; background: #bdc3c7; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #333;"><i class="bi bi-shield-shaded"></i></div>
+                <div><h4 style="margin: 0; font-size: 1.2rem; color: #fff;">SILVER</h4><p style="margin: 5px 0 0 0; color: #8b8f9c;">1200 - 1499 ELO. Proving stability and intent.</p></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 20px; background: #191b23; padding: 20px; border-radius: 20px; border-left: 6px solid #f1c40f;">
+                <div style="width: 60px; height: 60px; background: #f1c40f; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #333;"><i class="bi bi-award"></i></div>
+                <div><h4 style="margin: 0; font-size: 1.2rem; color: #fff;">GOLD</h4><p style="margin: 5px 0 0 0; color: #8b8f9c;">1500 - 1799 ELO. High tier competitor.</p></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 20px; background: #191b23; padding: 20px; border-radius: 20px; border-left: 6px solid #00d2d3;">
+                <div style="width: 60px; height: 60px; background: #00d2d3; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #fff;"><i class="bi bi-gem"></i></div>
+                <div><h4 style="margin: 0; font-size: 1.2rem; color: #fff;">PLATINUM</h4><p style="margin: 5px 0 0 0; color: #8b8f9c;">1800 - 2199 ELO. Elite master of strategy.</p></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 20px; background: #191b23; padding: 20px; border-radius: 20px; border-left: 6px solid #ff4757; box-shadow: 0 0 30px rgba(255,71,87,0.2);">
+                <div style="width: 60px; height: 60px; background: #ff4757; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #fff;"><i class="bi bi-fire"></i></div>
+                <div><h4 style="margin: 0; font-size: 1.2rem; color: #fff;">GRANDMASTER</h4><p style="margin: 5px 0 0 0; color: #8b8f9c;">2200+ ELO. The ultimate Arena champion.</p></div>
+            </div>
+        </div>
+    </div>
 </div>
-<script src="main.js" type="module"></script>
-<div id="setup-panel" style="display:none; margin-top:10px;">
-<button class="btn btn-outline" id="createBtn" style="margin-bottom:5px; width:100%;">Create Room</button>
-<div style="display:flex; gap:5px;">
-<input id="roomInput" placeholder="Room ID" style="flex:1; padding:5px; border-radius:4px; background:var(--bg-main); border:1px solid var(--border-color); color:#fff;" type="text"/>
-<button class="btn btn-primary" id="joinBtn">Join</button>
+
+<!-- STATISTICS MODAL -->
+<div class="modal-overlay hidden" id="inGameStatsModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(20px);">
+    <div class="modal-content modern-modal" style="background: #151621; padding: 40px; border-radius: 30px; width: 95%; max-width: 800px; color: white; border: 1px solid rgba(255,255,255,0.1); max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+            <h2 style="margin: 0; font-size: 2rem; display: flex; align-items: center; gap: 15px; color: #fff; font-weight: 800;">
+                <i class="bi bi-person-lines-fill" style="color: #6c5ce7;"></i> STATISTICS
+            </h2>
+            <button onclick="closeModal('inGameStatsModal')" style="background: transparent; border: none; color: #8b8f9c; font-size: 1.8rem; cursor: pointer;"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 40px;">
+            <div style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size: 0.8rem; color: #8b8f9c; text-transform: uppercase; letter-spacing: 2px;">Global Winrate</div>
+                <div id="ttt-stat-winrate" style="font-size: 2.2rem; font-weight: 900; color: #00e676; margin-top: 5px;">0%</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size: 0.8rem; color: #8b8f9c; text-transform: uppercase; letter-spacing: 2px;">Arena ELO</div>
+                <div id="ttt-stat-elo" style="font-size: 2.2rem; font-weight: 900; color: #fbbf24; margin-top: 5px;">1000</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 25px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size: 0.8rem; color: #8b8f9c; text-transform: uppercase; letter-spacing: 2px;">Total Battles</div>
+                <div id="ttt-stat-total" style="font-size: 2.2rem; font-weight: 900; color: #6c5ce7; margin-top: 5px;">0</div>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+            <div>
+                <h3 style="font-size: 1rem; color: #8b8f9c; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <i class="bi bi-clock-history"></i> Recent Battles
+                </h3>
+                <div id="ttt-recent-history" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </div>
+            <div>
+                <h3 style="font-size: 1rem; color: #8b8f9c; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <i class="bi bi-star-fill"></i> Performance
+                </h3>
+                <div style="background: rgba(0,0,0,0.2); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                        <span style="color: #8b8f9c;">Victories</span> <span id="ttt-stat-wins" style="font-weight: 800; color: #00e676;">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                        <span style="color: #8b8f9c;">Defeats</span> <span id="ttt-stat-losses" style="font-weight: 800; color: #ff4757;">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #8b8f9c;">Draws</span> <span id="ttt-stat-draws" style="font-weight: 800; color: #bdc3c7;">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<div id="roomDisplay" style="margin-top:5px; color:var(--text-muted); font-size:0.9rem;"></div>
+
+<!-- INVITE MODAL -->
+<div class="modal-overlay hidden" id="inviteModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 4000; justify-content: center; align-items: center; backdrop-filter: blur(10px);">
+    <div class="modal-content modern-modal" style="background: #1a1c2b; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; color: white; border: 1px solid rgba(255,255,255,0.1);">
+        <h3 style="margin-top: 0; margin-bottom: 25px; font-weight: 800;"><i class="bi bi-person-plus-fill" style="color: #3b82f6; margin-right: 10px;"></i> INVITE PLAYER</h3>
+        
+        <div style="margin-bottom: 25px;">
+            <p style="margin-bottom: 10px; font-size: 0.9rem; color: #8b8f9c; font-weight: 600;">CO-OP SESSION LINK</p>
+            <div style="display: flex; gap: 10px;">
+                <input id="invite-link-input" readonly value="" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 10px; font-size: 0.85rem;" type="text"/>
+                <button class="btn btn-primary" onclick="copyInviteLink()" style="padding: 0 20px; border-radius: 10px; cursor: pointer;"><i class="bi bi-copy"></i></button>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 25px;">
+            <p style="margin-bottom: 10px; font-size: 0.9rem; color: #8b8f9c; font-weight: 600;">DIRECT INVITE</p>
+            <div style="display: flex; gap: 10px;">
+                <input id="new-friend-username" placeholder="Search username..." style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 10px;" type="text"/>
+                <button class="btn btn-primary" onclick="sendFriendRequest()" style="padding: 0 20px; border-radius: 10px; cursor: pointer;">Send</button>
+            </div>
+        </div>
+
+        <button class="btn btn-outline" onclick="closeModal('inviteModal')" style="width: 100%; padding: 12px; border-radius: 10px; color: #8b8f9c; border-color: rgba(255,255,255,0.1); cursor: pointer;">CLOSE</button>
+    </div>
 </div>
+
+<!-- RANK PROMOTION MODAL -->
+<div class="modal-overlay hidden" id="rankPromotionModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 6000; justify-content: center; align-items: center; backdrop-filter: blur(15px); animation: fadeIn 0.5s;">
+    <div style="text-align: center; animation: zoomIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);">
+        <div id="promo-badge" style="width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 30px; display: flex; align-items: center; justify-content: center; border: 4px solid rgba(255,255,255,0.2);">
+            <i class="bi bi-trophy-fill" style="font-size: 4rem; color: #fff;"></i>
+        </div>
+        <h2 id="promo-title" style="font-size: 2.5rem; font-weight: 950; text-transform: uppercase; letter-spacing: 4px; margin: 0; text-shadow: 0 0 20px rgba(255,255,255,0.2);">RANK PROMOTED!</h2>
+        <div id="promo-rank-name" style="font-size: 3.5rem; font-weight: 900; margin-top: 10px; letter-spacing: -2px;">GOLD</div>
+    </div>
 </div>
+
+<style>
+@keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+<div class="modal-overlay hidden" id="universal-game-over" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; justify-content: center; align-items: center; backdrop-filter: blur(10px);">
+    <div class="modal-content" style="background: #1a1a2e; padding: 50px; border-radius: 25px; width: 90%; max-width: 400px; text-align: center; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 0 50px rgba(0,0,0,0.5);">
+        <h2 id="go-title" style="font-size: 3rem; margin-bottom: 10px; font-weight: 900; letter-spacing: -1px; color: white;">Game Over</h2>
+        <p id="go-msg" style="color: #aaa; margin-bottom: 35px; font-size: 1.2rem; font-weight: 500;">Good game!</p>
+        <button onclick="location.reload()" style="background: #00d2d3; color: white; border: none; padding: 18px 30px; font-size: 1.2rem; border-radius: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto; gap: 12px; width: 100%; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;">
+            <i class="bi bi-arrow-clockwise"></i> Play Again
+        </button>
+    </div>
 </div>
-<!-- ACTION TOOLBAR (Right to Left) -->
-<div class="action-bar-wrapper" style="width: 100%;">
-<div class="game-action-bar modern-action-bar" style="display: flex; align-items: center; justify-content: flex-end; width: 100%;">
-<button class="action-btn pill-btn invite-btn" data-tooltip="Invite Friends" onclick="showInviteModal()" style="background-color: #558B6E; color: white; border-radius: 30px; border: none; cursor: pointer;">
-<i class="bi bi-person-add"></i> <span>Invite</span>
-</button>
-<div class="vote-group" style="display: flex; background: rgba(255,255,255,0.08); border-radius: 30px; overflow: hidden; margin-right: 15px; align-items: center;">
-<button class="action-btn vote-btn like-btn" data-tooltip="Like Game" onclick="likeGame()" style="background: none; border: none; color: white; cursor: pointer;">
-<i class="bi bi-hand-thumbs-up-fill"></i> <span id="like-count" style="margin-left: 5px;">0</span>
-</button>
-<div style="width: 1px; height: 30px; background: rgba(255,255,255,0.2);"></div>
-<button class="action-btn vote-btn dislike-btn" data-tooltip="Dislike Game" onclick="dislikeGame()" style="background: none; border: none; color: white; cursor: pointer;">
-<i class="bi bi-hand-thumbs-down-fill"></i>
-</button>
-</div>
-<button class="action-btn circle-btn fav-btn" data-tooltip="Add to Favorites" onclick="toggleFavorite()" style="border: none; color: white; cursor: pointer;">
-<i class="bi bi-heart"></i>
-</button>
-<button class="action-btn circle-btn feedback-btn" data-tooltip="Feedback" onclick="showFeedbackModal()" style="border: none; color: white; cursor: pointer;">
-<i class="bi bi-chat-square-text"></i>
-</button>
-<button class="action-btn circle-btn controls-btn" data-tooltip="Game Controls" onclick="toggleControls()" style="border: none; color: white; cursor: pointer;">
-<i class="bi bi-controller"></i>
-</button>
-<button class="action-btn circle-btn fs-btn" data-tooltip="Full Screen" id="fullscreen-btn" style="border: none; color: white; cursor: pointer;">
-<i class="bi bi-arrows-fullscreen"></i>
-</button>
-</div>
-<div class="game-controls-accordion" id="game-controls-accordion">
-<h4 style="margin-bottom: 10px; color: white; display:flex; align-items:center; gap: 8px;">
-<i class="bi bi-info-circle"></i> How to Play
-        </h4>
-<p id="game-instructions-text" style="color: #aaa; margin: 0;">Click any square to place your symbol (X or O). Get 3 symbols in a row horizontally, vertically, or diagonally to win the round.</p>
-</div>
-</div>
-<!-- DESCRIPTION BOX -->
-<div class="game-description-box" style="margin-top: 20px; background: var(--bg-card); padding: 30px; border-radius: 16px; line-height: 1.6; border:1px solid rgba(255,255,255,0.05);">
-<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom: 20px; margin-bottom: 20px;">
-<div>
-<h1 style="font-size: 2.5rem; margin: 0 0 5px 0; font-weight:800;">Tic-Tac-Toe</h1>
-<span style="color:var(--text-muted);">Action • Multiplayer</span>
-</div>
-</div>
-<div class="meta-data" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; padding: 20px; background: var(--bg-dark); border-radius: 8px; font-size: 0.95rem;">
-<div><div style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase;">Developer</div><strong>ArcadeHub Studios</strong></div>
-<div><div style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase;">Released</div><strong>March 2026</strong></div>
-<div><div style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase;">Technology</div><strong>HTML5</strong></div>
-<div><div style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase;">Platforms</div><strong>Browser</strong></div>
-</div>
-<div style="color:var(--text-main); font-size:1.05rem;">
-<p>The timeless classic of Xs and Os. Can you outsmart your opponent?</p>
-<h3 style="margin-top:25px; font-size:1.5rem;">How to Play</h3>
-<p>Follow the on-screen instructions. Master your timing and outsmart your opponents to secure the top spot on the leaderboards!</p>
-</div>
-</div>
-</div>
-<!-- Right Side: Related Games -->
-<div class="game-right-col" style="width: 320px; flex-shrink: 0;">
-<h3 style="margin-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.05); padding-bottom:10px; font-size:1.2rem;">Related Games</h3>
-<div class="related-games-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-<a class="game-card" href="/games/connect4/index.html" style="aspect-ratio:3/4;">
-<div class="game-card-img-container" style="height:60%;">
-<div class="game-card-img" style="background-image: url('https://t3.ftcdn.net/jpg/04/06/93/82/360_F_406938253_AneDCdBsJJic1FpXtQFG929pNAV9m0wm.jpg');"></div>
-</div>
-<div class="game-card-info" style="padding:10px;"><h3 class="game-card-title" style="font-size:0.9rem;">Connect 4</h3></div>
-</a>
-<a class="game-card" href="/games/snake/index.html" style="aspect-ratio:3/4;">
-<div class="game-card-img-container" style="height:60%;">
-<div class="game-card-img" style="background-image: url('https://t4.ftcdn.net/jpg/07/11/95/05/360_F_711950540_17IHHEPz3bW00kxb3oBAm2x63XwqbAAt.jpg');"></div>
-</div>
-<div class="game-card-info" style="padding:10px;"><h3 class="game-card-title" style="font-size:0.9rem;">Retro Snake</h3></div>
-</a>
-<a class="game-card" href="/games/tictactoe/index.html" style="aspect-ratio:3/4;">
-<div class="game-card-img-container" style="height:60%;">
-<div class="game-card-img" style="background-image: url('https://cdn-icons-png.flaticon.com/512/10199/10199746.png');"></div>
-</div>
-<div class="game-card-info" style="padding:10px;"><h3 class="game-card-title" style="font-size:0.9rem;">Tic-Tac-Toe</h3></div>
-</a>
-<a class="game-card" href="/games/mines/index.html" style="aspect-ratio:3/4;">
-<div class="game-card-img-container" style="height:60%;">
-<div class="game-card-img" style="background-image: url('https://png.pngtree.com/recommend-works/png-clipart/20250707/ourmid/pngtree-blue-crystal-cluster-icon-in-flat-style-suitable-for-fantasy-gem-png-image_16704627.webp');"></div>
-</div>
-<div class="game-card-info" style="padding:10px;"><h3 class="game-card-title" style="font-size:0.9rem;">Gem Mines</h3></div>
-</a>
-</div>
-</div>
-</div>
+
 <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.has('mode')) {
-                    document.getElementById('game-start-overlay').style.display = 'none';
-                    document.getElementById('actual-game-container').style.filter = 'none';
-                }
-            });
-        </script>
-</main>
-</div>
-</div>
-<script type="module" src="/config.js"></script>
-<script src="/socket.io/socket.io.js"></script>
-<!-- Fallback legacy styles for exact component mounting in specific scripts if required. -->
-<link href="/styles.css" rel="stylesheet"/>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const fsBtn = document.getElementById('fullscreen-btn');
-        if(fsBtn) {
-            fsBtn.onclick = () => {
-                const gameArea = document.getElementById('actual-game-container');
-                if(gameArea && gameArea.requestFullscreen) {
-                    gameArea.requestFullscreen();
-                }
-            }
+    function openModal(id) {
+        const m = document.getElementById(id);
+        if (m) {
+            m.style.display = 'flex';
+            m.classList.remove('hidden');
         }
-    });
-</script>
-<!-- Social/Game Modals -->
-<div class="modal-overlay hidden" id="feedbackModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
-<div class="modal-content modern-modal" style="background: #1a1a2e; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; color: white; border: 1px solid rgba(255,255,255,0.1);">
-<h3><i class="bi bi-chat-square-text"></i> Submit Feedback</h3>
-<textarea id="feedback-text" placeholder="What do you think about the game?" rows="4" style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; margin: 15px 0; border-radius: 5px; box-sizing: border-box;"></textarea>
-<button class="action-btn" onclick="submitFeedback()" style="background: #558B6E; border: none; padding: 8px 15px; color: white; border-radius: 5px; cursor: pointer; width: 100%; margin-bottom: 10px;">Send Feedback</button>
-<button class="close-modal" onclick="closeModal('feedbackModal')" style="background: rgba(255,255,255,0.1); border: none; padding: 8px 15px; color: white; border-radius: 5px; cursor: pointer; width: 100%;">Cancel</button>
-</div>
-</div>
-<div class="modal-overlay hidden" id="inviteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
-<div class="modal-content modern-modal" style="background: #1a1a2e; padding: 20px; border-radius: 10px; width: 90%; max-width: 400px; color: white; border: 1px solid rgba(255,255,255,0.1);">
-<h3><i class="bi bi-person-add"></i> Invite Friends</h3>
-<div class="friend-list-container" id="invite-friend-list" style="margin: 15px 0; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;">
-<p style="color: #aaa; text-align: center;">Loading friends...</p>
-</div>
-<div class="add-friend-section" style="display: flex; gap: 10px; margin-bottom: 15px;">
-<input id="new-friend-username" placeholder="Enter friend's username" style="flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 5px;" type="text"/>
-<button class="action-btn" onclick="sendFriendRequest()" style="background: #558B6E; border: none; padding: 8px 15px; color: white; border-radius: 5px; cursor: pointer;">Add</button>
-</div>
-<button class="close-modal" onclick="closeModal('inviteModal')" style="background: rgba(255,255,255,0.1); border: none; padding: 8px 15px; color: white; border-radius: 5px; cursor: pointer; width: 100%;">Close</button>
-</div>
-</div>
-<script>
-function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if(modal) {
+    }
+    function closeModal(id) {
+        const m = document.getElementById(id);
+        if (m) {
+            m.style.display = 'none';
+            m.classList.add('hidden');
+        }
+    }
+    function copyInviteLink() {
+        const input = document.getElementById('invite-link-input');
+        input.select();
+        document.execCommand('copy');
+        alert("Link copied to clipboard!");
+    }
+    window.showGameOver = function(title, msg, isWin) {
+        const modal = document.getElementById('universal-game-over');
+        const titleEl = document.getElementById('go-title');
+        const msgEl = document.getElementById('go-msg');
+        titleEl.textContent = title;
+        msgEl.textContent = msg;
+        if (isWin === true) titleEl.style.color = '#00e676';
+        else if (isWin === false) titleEl.style.color = '#ff4757';
+        else titleEl.style.color = '#fbbf24';
         modal.style.display = 'flex';
         modal.classList.remove('hidden');
-    }
-}
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if(modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-    }
-}
-function likeGame() { alert("Liked game! (Backend integration pending)"); }
-function dislikeGame() { alert("Disliked game! (Backend integration pending)"); }
-function toggleFavorite() { alert("Toggled favorite! (Backend integration pending)"); }
-function submitFeedback() { alert("Feedback submitted! Thank you."); closeModal("feedbackModal"); }
-function sendFriendRequest() { alert("Friend request sent!"); }
+    };
+
+    window.showRankPromotion = function(rankData, isUp = true) {
+        const modal = document.getElementById('rankPromotionModal');
+        const badge = document.getElementById('promo-badge');
+        const title = document.getElementById('promo-title');
+        const name = document.getElementById('promo-rank-name');
+        
+        badge.style.background = rankData.color;
+        badge.style.boxShadow = `0 0 40px ${rankData.color}88`;
+        title.textContent = isUp ? 'RANK PROMOTED!' : 'RANK DEMOTED';
+        title.style.color = isUp ? '#ffd700' : '#ff4757';
+        name.textContent = rankData.name;
+        name.style.color = rankData.color;
+
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+        
+        // Auto-close after 3 seconds
+        setTimeout(() => closeModal('rankPromotionModal'), 3500);
+    };
 </script>
+
+<script src="main.js" type="module"></script>
+<script type="module" src="/config.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script src="../../assets/js/social.js"></script>
-<div class="modal-overlay hidden" id="authGuardModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
-<div class="modal-content modern-modal" style="background: #1a1a2e; padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; color: white; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
-<i class="bi bi-person-lock" style="font-size: 3rem; color: #ff6b6b; margin-bottom: 15px; display: block;"></i>
-<h3 style="margin-bottom: 10px; font-size: 1.5rem;">Login Required</h3>
-<p style="color: #aaa; margin-bottom: 25px;">You need to be logged in to use social features like liking, adding favorites, or inviting friends.</p>
-<div style="display: flex; gap: 10px; justify-content: center;">
-<a class="action-btn" href="../../login.html" style="background: #558B6E; color: white; text-decoration: none; border-radius: 8px; padding: 10px 20px;">Log In</a>
-<a class="action-btn" href="../../signup.html" style="background: rgba(255,255,255,0.1); color: white; text-decoration: none; border-radius: 8px; padding: 10px 20px;">Sign Up</a>
-</div>
-<button class="close-modal" onclick="closeAuthGuard()" style="margin-top: 20px; background: transparent; border: none; color: #aaa; cursor: pointer; text-decoration: underline;">Maybe later</button>
-</div>
-</div>
-<script>
-window.showGameOver = function(title, msg, isWin) {
-    const modal = document.getElementById('universal-game-over');
-    const titleEl = document.getElementById('go-title');
-    const msgEl = document.getElementById('go-msg');
-    
-    titleEl.textContent = title;
-    msgEl.textContent = msg;
-    
-    if (isWin === true) {
-        titleEl.style.color = '#88D49E'; // Green
-        titleEl.style.textShadow = '0 0 20px rgba(136,212,158,0.5)';
-    } else if (isWin === false) {
-        titleEl.style.color = '#FF6B6B'; // Red
-        titleEl.style.textShadow = '0 0 20px rgba(255,107,107,0.5)';
-    } else {
-        titleEl.style.color = '#F5B041'; // Yellow/Draw
-        titleEl.style.textShadow = '0 0 20px rgba(245,176,65,0.5)';
-    }
-    
-    modal.style.display = 'flex';
-    modal.classList.remove('hidden');
-    // small animation trick
-    setTimeout(() => {
-        modal.querySelector('.modal-content').style.transform = 'scale(1)';
-    }, 10);
-};
-</script>
-
-<script>
-window.showGameOver = function(title, msg, isWin) {
-    const modal = document.getElementById('universal-game-over');
-    const titleEl = document.getElementById('go-title');
-    const msgEl = document.getElementById('go-msg');
-    
-    titleEl.textContent = title;
-    msgEl.textContent = msg;
-    
-    if (isWin === true) {
-        titleEl.style.color = '#88D49E'; // Green
-        titleEl.style.textShadow = '0 0 20px rgba(136,212,158,0.5)';
-    } else if (isWin === false) {
-        titleEl.style.color = '#FF6B6B'; // Red
-        titleEl.style.textShadow = '0 0 20px rgba(255,107,107,0.5)';
-    } else {
-        titleEl.style.color = '#F5B041'; // Yellow/Draw
-        titleEl.style.textShadow = '0 0 20px rgba(245,176,65,0.5)';
-    }
-    
-    modal.style.display = 'flex';
-    modal.classList.remove('hidden');
-    // small animation trick
-    setTimeout(() => {
-        modal.querySelector('.modal-content').style.transform = 'scale(1)';
-    }, 10);
-};
-</script>
-
-<div class="modal-overlay hidden" id="universal-game-over" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(8px);">
-<div class="modal-content" style="background: var(--bg-card, #1a1a2e); padding: 40px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 0 50px rgba(0,0,0,0.8); transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-<h2 id="go-title" style="font-size: 2.5rem; margin-bottom: 10px; color: white;">Game Over</h2>
-<p id="go-msg" style="color: #aaa; margin-bottom: 30px; font-size: 1.2rem;">Good game!</p>
-<button onclick="location.reload()" style="background: #558B6E; color: white; border: none; padding: 12px 25px; font-size: 1.2rem; border-radius: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto; gap: 10px; width: 100%; transition: transform 0.2s;">
-<i class="bi bi-arrow-clockwise"></i> Play Again
-        </button>
-</div>
-</div>
-<script>
-window.showGameOver = function(title, msg, isWin) {
-    const modal = document.getElementById('universal-game-over');
-    const titleEl = document.getElementById('go-title');
-    const msgEl = document.getElementById('go-msg');
-    
-    titleEl.textContent = title;
-    msgEl.textContent = msg;
-    
-    if (isWin === true) {
-        titleEl.style.color = '#88D49E'; // Green
-        titleEl.style.textShadow = '0 0 20px rgba(136,212,158,0.5)';
-    } else if (isWin === false) {
-        titleEl.style.color = '#FF6B6B'; // Red
-        titleEl.style.textShadow = '0 0 20px rgba(255,107,107,0.5)';
-    } else {
-        titleEl.style.color = '#F5B041'; // Yellow/Draw
-        titleEl.style.textShadow = '0 0 20px rgba(245,176,65,0.5)';
-    }
-    
-    modal.style.display = 'flex';
-    modal.classList.remove('hidden');
-    // small animation trick
-    setTimeout(() => {
-        modal.querySelector('.modal-content').style.transform = 'scale(1)';
-    }, 10);
-};
-</script>
 </body>
-</html><style>
-@keyframes pulseFade {
-    0% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.3; transform: scale(0.9); }
-    100% { opacity: 1; transform: scale(1); }
-}
-.fading {
-    animation: pulseFade 1.5s infinite;
-    color: #ffd700 !important;
-}
-</style>
-<style>@keyframes pulseFade { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } } .fading { animation: pulseFade 1.5s infinite; color: #ffd700 !important; }</style>
-<style>
-@keyframes winPulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); }
-  20% { transform: scale(1.05); box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); }
-  50% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
-  100% { transform: scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); }
-}
-</style>
+</html>

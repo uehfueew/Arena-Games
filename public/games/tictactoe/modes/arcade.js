@@ -1,31 +1,36 @@
 export function initArcade(game) {
+    if (document.getElementById('powerups-container')) {
+        document.getElementById('powerups-container').remove();
+    }
+
     let powerUpsUI = document.createElement('div');
     powerUpsUI.id = 'powerups-container';
     powerUpsUI.innerHTML = `
         <style>
-            .powerup-box { display: flex; flex-direction: column; align-items: center; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-top: 15px; width: 100%; }
-            .powerups-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+            .powerup-box { display: flex; flex-direction: column; align-items: center; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); margin-top: 20px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+            .powerups-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
             .powerup-btn { 
-                position: relative; width: 60px; height: 60px; border-radius: 12px; font-weight: bold; 
-                cursor: pointer; border: 2px solid #555; background: #222; color: #fff; 
-                transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-size: 1.5rem;
+                position: relative; width: 60px; height: 60px; border-radius: 14px; font-weight: bold; 
+                cursor: pointer; border: 1px solid rgba(255,255,255,0.1); background: #222; color: #fff; 
+                transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; align-items: center; justify-content: center;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-size: 1.4rem;
             }
-            .powerup-btn span { font-size: 0.6rem; margin-top: 5px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
+            .powerup-btn span { font-size: 0.6rem; margin-top: 4px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: #8b8f9c; }
             .powerup-btn .badge { 
-                position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white; 
+                position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; 
                 border-radius: 50%; width: 22px; height: 22px; font-size: 0.75rem; 
-                display: flex; align-items: center; justify-content: center; border: 2px solid #1A1C2B;
+                display: flex; align-items: center; justify-content: center; border: 3px solid #1A1C2B;
+                font-weight: 900;
             }
-            .powerup-btn:hover { background: #333; transform: translateY(-2px); }
-            .powerup-btn.active { border-color: #f1c40f; background: rgba(241, 196, 15, 0.2); color: #f1c40f; box-shadow: 0 0 15px rgba(241, 196, 15, 0.5); }
-            .powerup-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; border-color: #333; }
+            .powerup-btn:hover:not(:disabled) { background: #333; transform: translateY(-3px); border-color: rgba(255,255,255,0.3); }
+            .powerup-btn.active { border-color: #f1c40f; background: rgba(241, 196, 15, 0.2); color: #f1c40f; box-shadow: 0 0 15px rgba(241, 196, 15, 0.5); transform: scale(1.05); }
+            .powerup-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; border-color: #333; }
             .powerup-btn:disabled .badge { background: #555; }
-            .locked-cell { background: #333 !important; cursor: not-allowed; border: 2px dashed #e74c3c !important; opacity: 0.8; }
-            .bomb-effect { background: #e74c3c !important; transform: scale(0.9); transition: 0.3s; }
+            .locked-cell { background: #333 !important; cursor: not-allowed; border: 2px dashed #ef4444 !important; opacity: 0.8; }
+            .bomb-effect { background: #ef4444 !important; transform: scale(0.9); transition: 0.2s; }
         </style>
         <div class="powerup-box">
-            <h3 style="margin-bottom:10px; font-size:1rem; color:#ccc; text-transform:uppercase; letter-spacing:1px;">Your Power-Ups</h3>
+            <h3 style="margin-bottom:15px; font-size:0.9rem; color:#8b8f9c; text-transform:uppercase; letter-spacing:2px; font-weight: 800;">Your Power-Ups</h3>
             <div class="powerups-row">
                 <button class="powerup-btn" id="btn-eraser" title="Erase an opponent's piece">
                     <i class="bi bi-eraser-fill"></i>
@@ -50,7 +55,10 @@ export function initArcade(game) {
             </div>
         </div>
     `;
-    document.querySelector('.tic-tac-grid').after(powerUpsUI);
+    const gameContainer = document.querySelector('#actual-game-container > div');
+    if (gameContainer) {
+        gameContainer.appendChild(powerUpsUI);
+    }
 
     let activePowerUp = null;
     let playerPowerups = {
@@ -211,7 +219,7 @@ export function initArcade(game) {
         endPowerUp();
     }
 
-    game.getCustomAIMove = function() {
+    game.getCustomAIMove = function(difficulty = 2) {
         if (!game.gameActive || game.currentPlayer !== 'O') return -1;
         
         let pps = playerPowerups['O'];
@@ -224,47 +232,61 @@ export function initArcade(game) {
             if (game.board[i] === 'X') playerXCells.push(i);
         }
 
-        // 30% chance AI uses a random available power-up
-        if (availablePowerups.length > 0 && Math.random() < 0.3) {
-            let power = availablePowerups[Math.floor(Math.random() * availablePowerups.length)];
-            
-            if (power === 'eraser' && playerXCells.length > 0) {
+        // 1. Check for immediate win
+        const canWin = (player) => {
+            for (let i = 0; i < 9; i++) {
+                if (game.board[i] === null) {
+                    let temp = [...game.board];
+                    temp[i] = player;
+                    if (game.checkWin(temp) === player) return i;
+                }
+            }
+            return -1;
+        };
+
+        let winMove = canWin('O');
+        if (winMove !== -1) return winMove;
+
+        // 2. Check for immediate block
+        let blockMove = canWin('X');
+        if (blockMove !== -1) {
+            // At higher difficulty, AI might use Eraser to remove a piece that is already part of a line
+            if (difficulty >= 3 && pps.eraser > 0 && playerXCells.length > 0 && Math.random() < 0.5) {
                 activePowerUp = 'eraser';
                 return playerXCells[Math.floor(Math.random() * playerXCells.length)];
             }
-            if (power === 'lock' && emptyCells.length > 0) {
-                activePowerUp = 'lock';
-                return emptyCells[Math.floor(Math.random() * emptyCells.length)];
-            }
-            if (power === 'bomb') {
-                activePowerUp = 'bomb';
-                return Math.floor(Math.random() * 9); 
-            }
-            if (power === 'double') {
+            return blockMove;
+        }
+
+        // 3. Strategic Power-up Usage (Higher difficulties only)
+        if (difficulty >= 3 && availablePowerups.length > 0) {
+            // Use Double Turn if many empty cells and high chance of setting up win
+            if (pps.double > 0 && emptyCells.length > 5 && Math.random() < 0.2) {
                 activePowerUp = 'double';
-                // Proceed to standard move, but with double active
+                // Proceed to standard move
+            }
+            
+            // Use Lock on center or corners if available and empty
+            if (pps.lock > 0 && [4, 0, 2, 6, 8].some(i => game.board[i] === null) && Math.random() < 0.3) {
+                activePowerUp = 'lock';
+                const strategic = [4, 0, 2, 6, 8].filter(i => game.board[i] === null);
+                return strategic[Math.floor(Math.random() * strategic.length)];
+            }
+
+            // Use Bomb if opponent has many pieces
+            if (pps.bomb > 0 && playerXCells.length >= 3 && Math.random() < 0.2) {
+                activePowerUp = 'bomb';
+                return playerXCells[Math.floor(Math.random() * playerXCells.length)];
             }
         }
 
-        // Standard AI fallback
-        if (emptyCells.length === 0) return -1;
+        // 4. Default move (Simulate some intelligence)
+        if (emptyCells.includes(4)) return 4; // Center
         
-        // Simple strategic check (or fallback to basic minimax if we had it cleanly exposed) 
-        // For Arcade, board might have 'LOCKED' so minimax might break if not handled well. 
-        // Let's do a simple win/block or random
-        let isWinningMove = (board, player, move) => {
-            let temp = [...board];
-            temp[move] = player;
-            return game.checkWin(temp) === player;
-        };
+        const corners = [0, 2, 6, 8].filter(i => emptyCells.includes(i));
+        if (corners.length > 0 && Math.random() < 0.7) return corners[Math.floor(Math.random() * corners.length)];
 
-        for (let move of emptyCells) {
-            if (isWinningMove(game.board, 'O', move)) return move;
-        }
-        for (let move of emptyCells) {
-            if (isWinningMove(game.board, 'X', move)) return move;
-        }
-
+        if (emptyCells.length === 0) return -1;
         return emptyCells[Math.floor(Math.random() * emptyCells.length)];
     };
 

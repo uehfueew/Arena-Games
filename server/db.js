@@ -59,6 +59,15 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 read INTEGER DEFAULT 0,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`);
+            db.run(`CREATE TABLE IF NOT EXISTS match_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT,
+                opponent TEXT,
+                game TEXT,
+                result TEXT,
+                date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(username) REFERENCES users(username) ON UPDATE CASCADE
+            )`);
         });
     }
 });
