@@ -21,8 +21,19 @@ let propertiesState = {}; // maps property id to { ownerId: int, houses: int, mo
 let doublesCount = 0;
 
 // Decks logic stub
-const chanceCards = ["Advance to Go (Collect $200)", "Go to Jail", "Bank pays you dividend of $50", "Advance to Illinois Ave", "Pay poor tax of $15"];
-const chestCards = ["Life insurance matures - Collect $100", "Doctor's fees - Pay $50", "Holiday Fund matures - Receive $100", "Hospital Fees - Pay $100"];
+const chanceCards = [
+    { text: "Advance to Go (Collect $200)", action: (p) => { movePlayer(p, 40 - p.pos, false); } },
+    { text: "Go to Jail", action: (p) => { p.pos = 10; p.inJail = true; p.jailTurns = 0; placeTokens(); endTurn(); } },
+    { text: "Bank pays you dividend of $50", action: (p) => { p.money += 50; updateSidebar(); endTurn(); } },
+    { text: "Advance to Illinois Ave", action: (p) => { let dist = (24 + 40 - p.pos) % 40; movePlayer(p, dist, false); } },
+    { text: "Pay poor tax of $15", action: (p) => { p.money -= 15; updateSidebar(); endTurn(); } }
+];
+const chestCards = [
+    { text: "Life insurance matures - Collect $100", action: (p) => { p.money += 100; updateSidebar(); endTurn(); } },
+    { text: "Doctor's fees - Pay $50", action: (p) => { p.money -= 50; updateSidebar(); endTurn(); } },
+    { text: "Holiday Fund matures - Receive $100", action: (p) => { p.money += 100; updateSidebar(); endTurn(); } },
+    { text: "Hospital Fees - Pay $100", action: (p) => { p.money -= 100; updateSidebar(); endTurn(); } }
+];
 
 let ruleStartMoney = 1500;
 let ruleGoBonus = 200;
@@ -42,6 +53,7 @@ function addPlayerRow() {
 }
 
 function startGame() {
+    localStorage.removeItem('monopoly_save');
     const inputs = document.getElementById('player-inputs');
     players = [];
     let selectedTokens = new Set();
@@ -67,6 +79,17 @@ function startGame() {
     
     document.getElementById('setup-lobby').classList.add('hidden');
     initBoard();
+    
+    setTimeout(() => {
+        try {
+            const docEl = document.documentElement;
+            const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            if (requestFullScreen) {
+                requestFullScreen.call(docEl).catch(e => console.log('Fullscreen rejected', e));
+            }
+        } catch(e) {}
+    }, 100);
+    
     logMsg(`--- ${players[currentPlayerIndex].name}'s Turn ---`, 'system');
 }
 
@@ -77,11 +100,19 @@ function initBoard() {
         spaceEl.id = `space-${index}`;
         
         let html = '';
-        if (space.color) {
+        if (space.color && space.type === 'property') {
             html += `<div class="color-bar" style="background-color: ${space.color}"></div>`;
         }
-        html += `<div class="space-name">${space.name}</div>`;
-        if (space.price > 0 && space.type === 'property' || space.type === 'railroad' || space.type === 'utility') {
+
+        if (space.type !== 'go' && space.type !== 'goto-jail' && space.type !== 'jail' && space.type !== 'parking') {
+            html += `<div class="space-name">${space.name}</div>`;
+        }
+
+        if (space.icon) {
+            html += `<div class="space-icon">${space.icon}</div>`;
+        }
+
+        if ((space.price > 0 && space.type === 'property') || space.type === 'railroad' || space.type === 'utility') {
             html += `<div class="space-price">$${space.price}</div>`;
         }
 
@@ -154,11 +185,12 @@ function updateSidebar() {
             if (p.properties.length === 0) {
                 portfolioContainer.innerHTML = '<div class="empty-state">No properties owned.</div>';
             } else {
-                p.properties.forEach(propId => {
+                p.properties.sort((a, b) => a - b).forEach(propId => {
                     const space = boardData[propId];
                     const state = propertiesState[propId];
                     const propCard = document.createElement('div');
-                    propCard.style = `border: 1px solid rgba(0,0,0,0.1); border-radius: 4px; padding: 5px; display:flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; ${state.mortgaged ? 'opacity: 0.6;' : ''}`;
+                    propCard.style = `border: 1px solid rgba(0,0,0,0.1); border-radius: 4px; padding: 5px; display:flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; cursor: pointer; ${state.mortgaged ? 'opacity: 0.6;' : ''}`;
+                    propCard.onclick = () => showPropertyInfo(space.id);
                     propCard.innerHTML = `
                         <div style="display:flex; align-items:center; gap: 8px;">
                             ${space.color ? `<div style="width: 12px; height: 12px; border-radius: 50%; background-color: ${space.color};"></div>` : ''}
@@ -251,6 +283,7 @@ function rollDice() {
         const v1 = Math.floor(Math.random() * 6) + 1;
         const v2 = Math.floor(Math.random() * 6) + 1;
         const total = v1 + v2;
+        window.lastDiceTotal = total;
 
         const diceMap = ['⚀','⚁','⚂','⚃','⚄','⚅'];
         
@@ -269,20 +302,49 @@ function rollDice() {
         const p = players[currentPlayerIndex];
         logMsg(`${p.name} rolled a ${total}`, 'system');
 
-        let isDouble = (v1 === v2);
+        const isDouble = (v1 === v2);
+        window.currentRollIsDouble = isDouble;
         
+        if (p.inJail) {
+            if (isDouble) {
+                logMsg(`${p.name} rolled doubles and escapes Jail!`, 'money-gained');
+                p.inJail = false;
+                doublesCount = 0;
+                window.currentRollIsDouble = false;
+                movePlayer(p, total, false);
+            } else {
+                p.jailTurns = (p.jailTurns || 0) + 1;
+                if (p.jailTurns >= 3) {
+                    logMsg(`${p.name} served their time and paid $50 to escape Jail.`, 'money-lost');
+                    p.money -= 50;
+                    p.inJail = false;
+                    p.jailTurns = 0;
+                    movePlayer(p, total, false);
+                } else {
+                    logMsg(`${p.name} failed to roll doubles and stays in Jail.`, 'system');
+                    handleLandedSpace(p);
+                }
+            }
+            return;
+        }
+
         if (isDouble) {
             doublesCount++;
             if (doublesCount === 3) {
                 logMsg(`${p.name} rolled doubles 3 times and is sent to jail!`, 'money-lost');
                 p.pos = 10;
+                p.inJail = true;
+                p.jailTurns = 0;
                 doublesCount = 0;
+                window.currentRollIsDouble = false;
                 placeTokens();
                 handleLandedSpace(p); // Handle Jail directly
                 return;
             } else {
                 logMsg(`${p.name} rolled doubles! Roll again!`, 'system');
             }
+        } else {
+            doublesCount = 0;
         }
 
         movePlayer(p, total, isDouble);
@@ -300,7 +362,7 @@ function checkMonopoly(ownerId, propId) {
 function checkBankruptcy() {
     for (let i = 0; i < players.length; i++) {
         let p = players[i];
-        if (p.money < 0 && !p.bankrupt) {
+        if (p.bankrupt && p.properties.length > 0) {
             logMsg(`${p.name} has gone BANKRUPT!`, 'money-lost');
             p.bankrupt = true;
             // Free their properties
@@ -327,6 +389,30 @@ function checkBankruptcy() {
         diceBtn.disabled = true;
         diceBtn.innerText = "GAME OVER";
         
+        let overScreen = document.createElement('div');
+        overScreen.style.position = 'fixed';
+        overScreen.style.inset = '0';
+        overScreen.style.backgroundColor = 'rgba(0,0,0,0.85)';
+        overScreen.style.color = 'gold';
+        overScreen.style.display = 'flex';
+        overScreen.style.flexDirection = 'column';
+        overScreen.style.alignItems = 'center';
+        overScreen.style.justifyContent = 'center';
+        overScreen.style.zIndex = '10000';
+        overScreen.style.backdropFilter = 'blur(10px)';
+        overScreen.innerHTML = `
+            <h1 style="font-size: 5rem; text-shadow: 0 0 20px gold; margin-bottom: 20px; transform: scale(0.5); animation: zoomIn 0.8s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);">🏆 ${winner.name} WINS! 🏆</h1>
+            <p style="font-size: 2rem; color: white;">Final Balance: $${winner.money}</p>
+            <button onclick="location.reload()" style="margin-top: 30px; font-size: 1.5rem; padding: 15px 30px; background: #eab308; color: #000; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5);">Play Again</button>
+        `;
+        document.body.appendChild(overScreen);
+        
+        let style = document.createElement('style');
+        style.innerHTML = `@keyframes zoomIn { to { transform: scale(1); } }`;
+        document.head.appendChild(style);
+
+        setInterval(fireConfetti, 500); // Continuous confetti
+
         if (winner.name === localStorage.getItem('username')) {
             if (window.API) window.API.saveGameStats({ game: 'monopoly', result: 'win', score: winner.money });
         }
@@ -442,19 +528,85 @@ function handleLandedSpace(player) {
 
             const owner = players.find(p => p.id === state.ownerId);
             
-    // Rent multiplier for houses: Base logic to eliminate repetitive ifs
+    // Determine rent based on space type
     let r = space.rent;
-    if (state.houses > 0) {
-        const multipliers = [1, 3, 8, 16, 20, 25]; // index 0 is 0 houses (handled), 1-5 are multipliers
-        r *= multipliers[state.houses];
-    } else if (checkMonopoly(owner.id, space.id)) {
-        r *= 2; // Check Monopoly Multiplier for unupgraded properties
+    if (space.type === 'property') {
+        if (state.houses > 0) {
+            const multipliers = [1, 3, 8, 16, 20, 25]; // ind 0=none, 1-5=multipliers
+            r *= multipliers[state.houses];
+        } else if (checkMonopoly(owner.id, space.id)) {
+            r *= 2; // Check Monopoly Multiplier for unupgraded properties
+        }
+    } else if (space.type === 'railroad') {
+        const rrCount = owner.properties.filter(id => boardData[id].type === 'railroad').length;
+        r = space.rent * Math.pow(2, rrCount - 1); // 25, 50, 100, 200
+    } else if (space.type === 'utility') {
+        const utilCount = owner.properties.filter(id => boardData[id].type === 'utility').length;
+        const diceTotal = window.lastDiceTotal || 7;
+        r = diceTotal * (utilCount === 2 ? 10 : 4);
     }
             
             player.money -= r;
             owner.money += r;
             logMsg(`${player.name} paid $${r} rent to ${owner.name}`, 'money-lost');
-            endTurn();
+            
+            // Cool Rent Animation
+            try {
+                const playerToken = document.getElementById("token-p" + player.id);
+                const ownerToken = document.getElementById("token-p" + owner.id);
+                if (playerToken && ownerToken) {
+                    const rectP = playerToken.getBoundingClientRect();
+                    const rectO = ownerToken.getBoundingClientRect();
+                    
+                    const paymentFlyer = document.createElement('div');
+                    paymentFlyer.innerText = "-$" + r;
+                    paymentFlyer.style.position = 'fixed';
+                    paymentFlyer.style.color = '#ef4444';
+                    paymentFlyer.style.fontWeight = '900';
+                    paymentFlyer.style.fontSize = '2rem';
+                    paymentFlyer.style.zIndex = '1000';
+                    paymentFlyer.style.textShadow = '0 0 10px white, 0 0 5px black';
+                    paymentFlyer.style.pointerEvents = 'none';
+                    paymentFlyer.style.left = rectP.left + 'px';
+                    paymentFlyer.style.top = rectP.top + 'px';
+                    paymentFlyer.style.transition = 'all 1.0s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                    document.body.appendChild(paymentFlyer);
+                    
+                    setTimeout(() => {
+                        paymentFlyer.style.left = rectO.left + 'px';
+                        paymentFlyer.style.top = rectO.top + 'px';
+                        paymentFlyer.style.color = '#10b981';
+                        paymentFlyer.innerText = "+$" + r;
+                        paymentFlyer.style.transform = 'scale(1.3) translateY(-20px)';
+                    }, 50);
+                    
+                    setTimeout(() => paymentFlyer.remove(), 2200);
+                }
+            } catch (e) {}
+
+            actionTitle.innerText = `${space.name}`;
+            
+            const buyPrice = space.price * 2;
+            actionDesc.innerText = `You paid $${r} rent to ${owner.name}.\n\nYou can forcibly BUY this property for $${buyPrice}.`;
+            
+            btnBuy.classList.remove('hidden');
+            btnBuy.innerText = `Buy ($${buyPrice})`;
+            btnBuy.disabled = player.money < buyPrice;
+            btnBuy.onclick = () => {
+                player.money -= buyPrice;
+                owner.money += buyPrice;
+                propertiesState[space.id].ownerId = player.id;
+                player.properties.push(space.id);
+                owner.properties = owner.properties.filter(id => id !== space.id);
+                document.getElementById(`owner-${space.id}`).style.backgroundColor = getPlayerColor(player.id);
+                logMsg(`${player.name} forced-bought ${space.name} from ${owner.name} for $${buyPrice}!`, 'money-gained');
+                btnBuy.classList.add('hidden');
+                updateDashboard();
+                endTurn();
+            };
+            
+            btnPass.classList.remove('hidden');
+            btnPass.onclick = endTurn;
         } else {
             // Owns it
             actionTitle.innerText = `${space.name}`;
@@ -469,21 +621,26 @@ function handleLandedSpace(player) {
         endTurn();
     } else if (space.type === 'chance' || space.type === 'chest') {
         const isChance = space.type === 'chance';
-        const desc = isChance ? chanceCards[Math.floor(Math.random()*chanceCards.length)] : chestCards[Math.floor(Math.random()*chestCards.length)];
+        const cardObj = isChance ? chanceCards[Math.floor(Math.random()*chanceCards.length)] : chestCards[Math.floor(Math.random()*chestCards.length)];
+        const desc = cardObj.text;
         
         const modal = document.getElementById('card-modal');
         const titleEl = document.getElementById('card-title');
         const descEl = document.getElementById('card-desc');
         const flipper = document.getElementById('card-flipper');
         
+        let headerColor = isChance ? '#f97316' : '#3b82f6';
+        let outlineColor = isChance ? '#f59e0b' : '#2563eb';
+        
         document.getElementById('card-title-back').innerText = isChance ? '?' : '★';
+        document.querySelector('#card-modal .property-card-modal').style.borderColor = outlineColor;
         
         modal.classList.remove('hidden');
         flipper.classList.remove('flipped'); // Reset card un-flipped initially
         
         setTimeout(() => {
-            titleEl.innerText = space.type.toUpperCase();
-            titleEl.style.color = isChance ? '#f97316' : '#3b82f6';
+            titleEl.innerText = space.name;
+            titleEl.style.color = headerColor;
             descEl.innerText = desc;
             flipper.classList.add('flipped'); // Flip card dynamically
             
@@ -491,6 +648,10 @@ function handleLandedSpace(player) {
             setTimeout(() => {
                 const okBtn = modal.querySelector('.close-modal');
                 okBtn.style.display = 'block';
+                okBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                    cardObj.action(player);
+                };
             }, 800);
         }, 500);
 
@@ -500,13 +661,34 @@ function handleLandedSpace(player) {
         const okBtn = modal.querySelector('.close-modal');
         okBtn.style.display = 'none';
         
-        // Modal button will handle endTurn...
-    } else {
-        // Go, Jail, Free Parking
-        actionTitle.innerText = space.name;
-        actionDesc.innerText = "Nothing happens... yet.";
+        // Modal button handles action and turn logic...
+    } else if (space.type === 'goto-jail') {
+        actionTitle.innerText = "Busted!";
+        actionDesc.innerText = "You have to go directly to Jail!";
         btnBuy.classList.add('hidden');
         btnPass.classList.remove('hidden');
+        btnPass.innerText = "Go to Jail";
+        btnPass.onclick = () => {
+            player.pos = 10;
+            player.inJail = true;
+            player.jailTurns = 0;
+            placeTokens();
+            playSound('dice'); // Thud sound
+            btnPass.innerText = "End Turn";
+            endTurn();
+        };
+    } else {
+        // Go, Jail, Free Parking
+        if(player.inJail && space.id === 10) {
+             actionTitle.innerText = "In Jail";
+             actionDesc.innerText = "You are locked up. Next turn, roll doubles to escape or pay a $50 fine.";
+        } else {
+             actionTitle.innerText = space.name;
+             actionDesc.innerText = "Nothing happens... yet.";
+        }
+        btnBuy.classList.add('hidden');
+        btnPass.classList.remove('hidden');
+        btnPass.innerText = "End Turn";
         btnPass.onclick = endTurn;
     }
     
@@ -514,6 +696,34 @@ function handleLandedSpace(player) {
 }
 
 function endTurn() {
+    let cp = players[currentPlayerIndex];
+    if (cp.money < 0 && !cp.bankrupt) {
+        actionTitle.innerText = "In Debt!";
+        actionDesc.innerText = "Mortgage property or sell houses to raise funds. Click below if you cannot pay.";
+        btnBuy.classList.add('hidden');
+        btnPass.classList.remove('hidden');
+        btnPass.innerText = "Declare Bankruptcy";
+        btnPass.onclick = () => {
+            cp.bankrupt = true;
+            logMsg(`${cp.name} has declared BANKRUPTCY!`, 'money-lost');
+            // Free their properties immediately
+            cp.properties.forEach(propId => {
+                delete propertiesState[propId];
+                const ownerEl = document.getElementById(`owner-${propId}`);
+                if(ownerEl) {
+                    ownerEl.style.backgroundColor = "transparent";
+                    ownerEl.style.opacity = '1';
+                }
+                updateBuildings(propId);
+            });
+            cp.properties = [];
+            checkBankruptcy(); // evaluate win cond
+            endTurn();
+        };
+        diceBtn.classList.add('hidden');
+        return; // Prevent passing
+    }
+
     if (checkBankruptcy()) return; // Stop if game is over
 
     // Hide the buy/pass buttons, show the dice roll UI
@@ -521,18 +731,27 @@ function endTurn() {
     btnPass.classList.add('hidden');
     diceBtn.classList.remove('hidden');
     
-    // Find next active player
-    do {
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
-    } while (players[currentPlayerIndex].bankrupt);
+    let p = players[currentPlayerIndex];
+    let rollAgain = window.currentRollIsDouble && p.pos !== 10 && !p.inJail;
+    
+    if (!rollAgain) {
+        do {
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+        } while (players[currentPlayerIndex].bankrupt);
+        doublesCount = 0;
+        window.currentRollIsDouble = false;
+        
+        actionTitle.innerText = "Action Required";
+        actionDesc.innerText = `Roll the dice to start your turn, ${players[currentPlayerIndex].name}.`;
+        logMsg(`--- ${players[currentPlayerIndex].name}'s Turn ---`, 'system');
+    } else {
+        actionTitle.innerText = "Roll Again!";
+        actionDesc.innerText = `You rolled doubles! Roll again, ${p.name}.`;
+    }
     
     diceBtn.disabled = false;
-    
-    actionTitle.innerText = "Action Required";
-    actionDesc.innerText = `Roll the dice to start your turn, ${players[currentPlayerIndex].name}.`;
-    
     updateSidebar();
-    logMsg(`--- ${players[currentPlayerIndex].name}'s Turn ---`, 'system');
+    saveGameState();
 }
 
 function playerColors() {
@@ -543,17 +762,30 @@ function getPlayerColor(id) {
     return playerColors()[id - 1] || '#94a3b8'; 
 }
 
-function closeCardModal() {
-    document.getElementById('card-modal').classList.add('hidden');
-    endTurn(); // close dialog, proceed to next player
-}
-
 function showPropertyInfo(id) {
     const space = boardData[id];
     if (space.type !== 'property' && space.type !== 'railroad' && space.type !== 'utility') return;
     
     document.getElementById('m-title').innerText = space.name;
     document.getElementById('m-price').innerText = `$${space.price}`;
+    
+    const header = document.getElementById('modal-header');
+    const deedTitle = document.getElementById('m-deed-title');
+    if (space.color && space.type === 'property') {
+        header.style.backgroundColor = space.color;
+        
+        let rgb = hexToRgb(space.color);
+        let luminance = rgb ? (0.299*rgb.r + 0.587*rgb.g + 0.114*rgb.b) : 255;
+        header.style.color = luminance < 128 ? '#fff' : '#000';
+        deedTitle.style.display = 'block';
+    } else {
+        header.style.backgroundColor = '#fff';
+        header.style.color = '#000';
+        deedTitle.style.display = 'none';
+        if (space.icon) {
+            document.getElementById('m-title').innerHTML = `${space.icon} ${space.name}`;
+        }
+    }
     
     let state = propertiesState[id];
     let r = space.rent;
@@ -564,7 +796,17 @@ function showPropertyInfo(id) {
         r *= 2;
     }
     
-    document.getElementById('m-rent').innerText = `$${r} ${state && state.houses > 0 ? '(Upgraded)' : ''} ${state && state.mortgaged ? '[MORTGAGED]' : ''}`;
+    let rentStr = space.type === 'utility' ? '4x/10x Dice' : `$${r}`;
+    document.getElementById('m-rent').innerText = `${rentStr} ${state && state.houses > 0 ? '(Upgraded)' : ''} ${state && state.mortgaged ? '[MORTGAGED]' : ''}`;
+    
+    let hCost = space.price <= 120 ? 50 : (space.price <= 200 ? 100 : (space.price <= 280 ? 150 : 200));
+    if (space.type === 'property') {
+        document.getElementById('m-house-cost-row').style.display = 'block';
+        document.getElementById('m-house-cost').innerText = `$${hCost}`;
+    } else {
+        document.getElementById('m-house-cost-row').style.display = 'none';
+    }
+    
     document.getElementById('m-owner').innerText = state ? players.find(p=>p.id===state.ownerId).name : 'None';
     
     const btnBuild = document.getElementById('btn-build');
@@ -574,17 +816,17 @@ function showPropertyInfo(id) {
     document.getElementById('btn-close-modal').style.display = 'block';
     
     if (state && space.type === 'property' && players[currentPlayerIndex].id === state.ownerId && diceBtn.classList.contains('hidden')) {
-        let hasMonopoly = checkMonopoly(players[currentPlayerIndex].id, id);
+        let hasMonopoly = true; // Relaxed so you don't need all colors to build
         
         btnBuild.style.display = 'block';
         if (state.mortgaged) {
             btnBuild.style.display = 'none';
         } else {
-            btnBuild.innerText = !hasMonopoly ? `Need Monopoly to Build` : (state.houses < 4 ? `Buy House ($50)` : (state.houses === 4 ? `Buy Hotel ($50)` : `Max Upgraded`));
+            btnBuild.innerText = !hasMonopoly ? `Need Monopoly to Build` : (state.houses < 4 ? `Buy House ($${hCost})` : (state.houses === 4 ? `Buy Hotel ($${hCost})` : `Max Upgraded`));
             btnBuild.disabled = state.houses >= 5 || !hasMonopoly;
             btnBuild.onclick = () => {
-                if (players[currentPlayerIndex].money >= 50 && state.houses < 5 && hasMonopoly) {
-                    players[currentPlayerIndex].money -= 50;
+                if (players[currentPlayerIndex].money >= hCost && state.houses < 5 && hasMonopoly) {
+                    players[currentPlayerIndex].money -= hCost;
                     state.houses += 1;
                     updateBuildings(id);
                     updateSidebar();
@@ -673,3 +915,59 @@ fetch('/api/user')
         }
     })
     .catch(console.warn);
+
+function hexToRgb(hex) {
+    if (!hex) return null;
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
+}
+
+function saveGameState() {
+    const state = {
+        players, currentPlayerIndex, propertiesState, doublesCount
+    };
+    localStorage.setItem('monopoly_save', JSON.stringify(state));
+}
+
+function loadGameState() {
+    const saved = localStorage.getItem('monopoly_save');
+    if (saved === null) return false;
+    try {
+        const state = JSON.parse(saved);
+        if (state.players == null || state.players.length === 0) return false;
+        
+        players = state.players;
+        currentPlayerIndex = state.currentPlayerIndex;
+        propertiesState = state.propertiesState;
+        doublesCount = state.doublesCount || 0;
+        
+        document.getElementById('setup-lobby').classList.add('hidden');
+        initBoard();
+        
+        for (let p in propertiesState) {
+            updateBuildings(p);
+            const owner = propertiesState[p].ownerId;
+            document.getElementById(`owner-${p}`).style.backgroundColor = getPlayerColor(owner);
+        }
+        
+        actionTitle.innerText = "Action Required";
+        actionDesc.innerText = `Roll the dice to start your turn, ${players[currentPlayerIndex].name}.`;
+        
+        logMsg('--- Game Resumed ---', 'system');
+        return true;
+    } catch(e) {
+        return false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if(loadGameState() === false) {
+        document.getElementById('setup-lobby').classList.remove('hidden');
+    }
+});
+
+document.querySelectorAll('.close-modal').forEach(btn => {
+    if (btn.innerText === 'OK') {
+        btn.addEventListener('click', closeCardModal);
+    }
+});

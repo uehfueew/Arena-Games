@@ -12,11 +12,28 @@
 }
 .cube__face {
     position: absolute; width: 60px; height: 60px;
-    background: white; border: 2px solid #ccc;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 4rem; color: #ef4444; font-weight: bold;
-    line-height: 1; /* Match dot size */
+    background: #1e293b; border-radius: 8px; border: 3px solid #cbd5e1;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5); box-sizing: border-box;
+    display: grid; padding: 10px;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    grid-template-areas:
+        'a . c'
+        'e g f'
+        'd . b';
+    background-clip: padding-box;
 }
+.cube__face .dot {
+    background: #fff; width: 70%; height: 70%; border-radius: 50%;
+    justify-self: center; align-self: center;
+    box-shadow: inset 0 -2px 2px rgba(0,0,0,0.2);
+}
+.cube__face[data-val="1"] .dot:nth-child(1) { grid-area: g; }
+.cube__face[data-val="2"] .dot:nth-child(1) { grid-area: a; } .cube__face[data-val="2"] .dot:nth-child(2) { grid-area: b; }
+.cube__face[data-val="3"] .dot:nth-child(1) { grid-area: a; } .cube__face[data-val="3"] .dot:nth-child(2) { grid-area: g; } .cube__face[data-val="3"] .dot:nth-child(3) { grid-area: b; }
+.cube__face[data-val="4"] .dot:nth-child(1) { grid-area: a; } .cube__face[data-val="4"] .dot:nth-child(2) { grid-area: c; } .cube__face[data-val="4"] .dot:nth-child(3) { grid-area: d; } .cube__face[data-val="4"] .dot:nth-child(4) { grid-area: b; }
+.cube__face[data-val="5"] .dot:nth-child(1) { grid-area: a; } .cube__face[data-val="5"] .dot:nth-child(2) { grid-area: c; } .cube__face[data-val="5"] .dot:nth-child(3) { grid-area: d; } .cube__face[data-val="5"] .dot:nth-child(4) { grid-area: b; } .cube__face[data-val="5"] .dot:nth-child(5) { grid-area: g; }
+.cube__face[data-val="6"] .dot:nth-child(1) { grid-area: a; } .cube__face[data-val="6"] .dot:nth-child(2) { grid-area: c; } .cube__face[data-val="6"] .dot:nth-child(3) { grid-area: d; } .cube__face[data-val="6"] .dot:nth-child(4) { grid-area: b; } .cube__face[data-val="6"] .dot:nth-child(5) { grid-area: e; } .cube__face[data-val="6"] .dot:nth-child(6) { grid-area: f; }
 .cube__face--front  { transform: rotateY(  0deg) translateZ(30px); }
 .cube__face--right  { transform: rotateY( 90deg) translateZ(30px); }
 .cube__face--back   { transform: rotateY(180deg) translateZ(30px); }

@@ -46,16 +46,17 @@
                 <button class="roll-btn" id="btn-roll">ROLL DICE</button>
                 <div class="dice-container" style="justify-content:center; margin-bottom: 20px;box-shadow:none;background:transparent; perspective: 400px;">
                     <div class="scene"><div class="cube" id="die1-3d">
-                        <div class="cube__face cube__face--front">⚀</div><div class="cube__face cube__face--back">⚅</div><div class="cube__face cube__face--right">⚂</div><div class="cube__face cube__face--left">⚃</div><div class="cube__face cube__face--top">⚁</div><div class="cube__face cube__face--bottom">⚄</div>
+                        <div class="cube__face cube__face--front" data-val="1"><div class="dot"></div></div><div class="cube__face cube__face--back" data-val="6"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="cube__face cube__face--right" data-val="3"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="cube__face cube__face--left" data-val="4"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="cube__face cube__face--top" data-val="2"><div class="dot"></div><div class="dot"></div></div><div class="cube__face cube__face--bottom" data-val="5"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
                     </div></div>
                     <div class="scene"><div class="cube" id="die2-3d">
-                        <div class="cube__face cube__face--front">⚀</div><div class="cube__face cube__face--back">⚅</div><div class="cube__face cube__face--right">⚂</div><div class="cube__face cube__face--left">⚃</div><div class="cube__face cube__face--top">⚁</div><div class="cube__face cube__face--bottom">⚄</div>
+                        <div class="cube__face cube__face--front" data-val="1"><div class="dot"></div></div><div class="cube__face cube__face--back" data-val="6"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="cube__face cube__face--right" data-val="3"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="cube__face cube__face--left" data-val="4"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="cube__face cube__face--top" data-val="2"><div class="dot"></div><div class="dot"></div></div><div class="cube__face cube__face--bottom" data-val="5"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
                     </div></div>
                 </div>
                 <h3 id="action-title">Action Required</h3>
                 <p id="action-desc" class="action-desc">Roll the dice to start your turn.</p>
                 <button class="btn-buy hidden" id="btn-buy">Buy Property</button>
                 <button class="btn-pass hidden" id="btn-pass">End Turn</button>
+                <button id="btn-reset" onclick="if(confirm('End current game and reset the board?')) { localStorage.removeItem('monopolyGameSave'); location.reload(); }" style="margin-top: 15px; width: 100%; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">End & Reset Game</button>
             </div>
             
             <div class="sidebar-header" style="margin-top: 20px;"><i class="fas fa-list-alt"></i> Game Log</div>
@@ -65,35 +66,37 @@
 
     <!-- Property Preview Modal -->
     <div class="modal-overlay hidden" id="property-modal">
-        <div class="property-card-modal">
+        <div class="property-card-modal deed-card">
             <div class="property-header" id="modal-header">
+                <div class="deed-title" id="m-deed-title">TITLE DEED</div>
                 <h2 id="m-title">Property</h2>
             </div>
             <div class="property-body">
-                <p>Price: <span id="m-price"></span></p>
-                <p>Rent: <span id="m-rent"></span></p>
-                <p>Owner: <span id="m-owner"></span></p>
+                <p><span>Price:</span> <strong id="m-price"></strong></p>
+                <p><span>Rent base:</span> <strong id="m-rent"></strong></p>
+                <p id="m-house-cost-row" style="display:none;"><span>House/Hotel Cost:</span> <strong id="m-house-cost"></strong></p>
+                <p><span>Owner:</span> <strong id="m-owner"></strong></p>
                 <hr>
-                <button class="btn-buy" id="btn-mortgage" style="margin-bottom: 10px; width: 100%; display: none; background: #f59e0b;"></button>
-                <button class="btn-buy" id="btn-build" style="margin-bottom: 10px; width: 100%; display: none;">Buy House ($50)</button>
-                <button class="close-modal" id="btn-close-modal">Close</button>
+                <button class="btn-buy" id="btn-mortgage" style="margin-bottom: 10px; width: 100%; display: none; background: #f59e0b; border: 2px solid #000; color: #000;"></button>
+                <button class="btn-buy" id="btn-build" style="margin-bottom: 10px; width: 100%; display: none; border: 2px solid #000; color: #fff;">Buy House ($50)</button>
+                <button class="close-modal" id="btn-close-modal">CLOSE</button>
             </div>
         </div>
     </div>
 
     <!-- Chance/Chest Modal -->
-    <div class="modal-overlay hidden" id="card-modal">
-        <div class="card-scene" style="width: 300px; height: 200px;">
+    <div class="modal-overlay hidden" id="card-modal" onclick="closeCardModal();">
+        <div class="card-scene" style="width: 300px; height: 320px;" onclick="closeCardModal();">
             <div class="card-flipper" id="card-flipper">
                 <div class="card-face back">
                     <h2 id="card-title-back">?</h2>
                 </div>
-                <div class="card-face front property-card-modal" style="width:100%; height:100%;">
+                <div class="card-face front property-card-modal" style="width:100%; height:100%; display: flex; flex-direction: column;">
                     <div class="property-header">
                         <h2 id="card-title">CHANCE</h2>
                     </div>
-                    <div id="card-desc">Advance to Go (Collect $200)</div>
-                    <button class="close-modal" onclick="closeCardModal();">OK</button>
+                    <div id="card-desc" style="flex: 1; padding: 20px; display: flex; align-items: center; justify-content: center; text-align: center;">Advance to Go (Collect $200)</div>
+                    <button class="close-modal" id="card-ok-btn" onclick="closeCardModal();" style="margin: 0; border-top: 2px solid #e2e8f0; border-radius: 0 0 4px 4px;">OK</button>
                 </div>
             </div>
         </div>
