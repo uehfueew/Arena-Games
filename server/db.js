@@ -18,6 +18,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 snake_color TEXT DEFAULT '#4CAF50',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )`);
+            db.run(`CREATE TABLE IF NOT EXISTS stakes_ledger (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, game TEXT, bet REAL, multiplier REAL, payout REAL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)`);
             db.run(`CREATE TABLE IF NOT EXISTS stats (
                 username TEXT,
                 game TEXT,
@@ -45,6 +46,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
                 status TEXT DEFAULT 'online',
                 PRIMARY KEY (user, friend)
             )`);
+            db.run(`CREATE TABLE IF NOT EXISTS maze_progress ( username TEXT PRIMARY KEY, max_level INTEGER DEFAULT 1 )`);
             db.run(`CREATE TABLE IF NOT EXISTS favorites (
                 user TEXT,
                 game TEXT,

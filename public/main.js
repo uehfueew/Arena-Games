@@ -226,7 +226,16 @@ function loadDropdownData(user, type) {
     fetch(conf.url).then(r=>r.json()).then(data => {
         listEl.innerHTML = '';
         if(!data || data.length === 0) {
-            listEl.innerHTML = `<div class="dropdown-empty">${conf.emptyMsg}</div>`;
+            let emptyHtml = `<div class="dropdown-empty">${conf.emptyMsg}</div>`;
+            if (type === 'friendsDropdown') {
+                emptyHtml += `
+                <div style="padding: 10px; border-top: 1px solid var(--bg-card); display: flex; gap: 5px;">
+                    <input type="text" id="addFriendInput" placeholder="Friend Username..." style="flex:1; border-radius: 4px; border: 1px solid var(--bg-card); background: #191b23; color: #fff; padding: 4px 8px; font-size: 0.85rem;" />
+                    <button onclick="addFriend(document.getElementById('addFriendInput').value)" style="background: var(--bg-button); border:none; color:#fff; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 0.85rem;">Add</button>
+                </div>
+                `;
+            }
+            listEl.innerHTML = emptyHtml;
             return;
         }
         
@@ -262,91 +271,45 @@ function loadDropdownData(user, type) {
         });
         
         listEl.innerHTML = html;
-        if(type === 'friendsDropdown') {
-            document.getElementById('friendsCount').innerText = data.length;
+            if(type === 'friendsDropdown') {
+                document.getElementById('friendsCount').innerText = data.length;
+                html += `
+                <div style="padding: 10px; border-top: 1px solid var(--bg-card); display: flex; gap: 5px;">
+                    <input type="text" id="addFriendInput" placeholder="Username..." style="flex:1; border-radius: 4px; border: 1px solid var(--bg-card); background: #191b23; color: #fff; padding: 4px 8px; font-size: 0.85rem;" />
+                    <button onclick="addFriend(document.getElementById('addFriendInput').value)" style="background: var(--bg-button); border:none; color:#fff; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 0.85rem;">Add</button>
+                </div>
+                `;
+                listEl.innerHTML = html;
+            } else {
+                listEl.innerHTML = html;
+            }
         }
     }).catch(err => {
         listEl.innerHTML = `<div class="dropdown-empty">No items yet</div>`;
     });
 }
 
-
-// --- Global Chat ---
-let socket = null;
-function initGlobalChat(username) {
-    if (document.getElementById('global-chat')) return;
-    if (typeof io === 'undefined') return; // Only if socket.io is loaded on page
-
-    socket = io(config.serverUrl);
-
-    const chatEl = document.createElement('div');
-    chatEl.id = 'global-chat';
-    chatEl.className = 'collapsed';
-    chatEl.innerHTML = `
-        <div class="chat-header" id="chat-header">
-            <span>Global Arcade Chat</span>
-            <span id="chat-toggle">▲</span>
-        </div>
-        <div class="chat-messages" id="chat-messages"></div>
-        <div class="chat-input-area">
-            <input type="text" id="chat-input" class="chat-input" placeholder="Say hello..." autocomplete="off">
-            <button id="chat-send" class="chat-btn">Send</button>
-        </div>
-    `;
-    document.body.appendChild(chatEl);
-
-    const header = document.getElementById('chat-header');
-    const messages = document.getElementById('chat-messages');
-    const input = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('chat-send');
-
-    header.onclick = () => {
-        chatEl.classList.toggle('collapsed');
-        document.getElementById('chat-toggle').textContent = chatEl.classList.contains('collapsed') ? '▲' : '▼';
-    };
-
-    const sendMessage = () => {
-        const text = input.value.trim();
-        if (text) {
-            socket.emit('globalChat', { username, text });
-            input.value = '';
-        }
-    };
-
-    sendBtn.onclick = sendMessage;
-    input.onkeypress = (e) => { if(e.key === 'Enter') sendMessage(); };
-
-    socket.on('globalChatHistory', (history) => {
-        messages.innerHTML = '';
-        history.forEach(msg => {
-            const d = document.createElement('div');
-            d.className = 'chat-msg';
-            d.innerHTML = `<span class="chat-msg-user">${msg.username}:</span><span>${msg.text}</span>`;
-            messages.appendChild(d);
-        });
-        messages.scrollTop = messages.scrollHeight;
-    });
-
-    socket.on('globalChatReceive', (msg) => {
-        const d = document.createElement('div');
-        d.className = 'chat-msg';
-        d.innerHTML = `<span class="chat-msg-user">${msg.username}:</span><span>${msg.text}</span>`;
-        messages.appendChild(d);
-        messages.scrollTop = messages.scrollHeight;
-        
-        if (chatEl.classList.contains('collapsed')) {
-            document.getElementById('chat-toggle').textContent = '! (New)';
+window.addFriend = function(friendName) {
+    if(!friendName) return;
+    const username = localStorage.getItem('username');
+    fetch('/api/friends/add', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({username, friend: friendName})
+    }).then(r=>r.json()).then(d => {
+        if(d.error) alert(d.error);
+        else {
+            alert('Friend added!');
+            document.getElementById('addFriendInput').value = '';
+            // refresh
+            document.getElementById('friendsToggle').click();
+            setTimeout(() => document.getElementById('friendsToggle').click(), 10);
         }
     });
-}
+};
 
-export function logout() {
-    localStorage.removeItem('username');
-    window.location.href = 'login.html';
-}
 
 document.addEventListener('DOMContentLoaded', () => {
-    createParticles();
     checkAuth();
     const logoutBtn = document.getElementById('logoutBtn');
     if(logoutBtn) logoutBtn.addEventListener('click', logout);
@@ -363,6 +326,33 @@ document.addEventListener('DOMContentLoaded', () => {
             cards.forEach(card => {
                 const title = card.querySelector('.game-card-title').innerText.toLowerCase();
                 card.style.display = title.includes(query) ? 'flex' : 'none';
+            });
+        });
+    }
+
+    // Category filtering logic
+    const filterBtns = document.querySelectorAll('.cat-btn');
+    const gameCards = document.querySelectorAll('.game-card');
+
+    if (filterBtns.length > 0) {
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active button styling
+                filterBtns.forEach(b => {
+                    b.classList.remove('active');
+                });
+                btn.classList.add('active');
+
+                const filter = btn.getAttribute('data-filter');
+
+                // Filter games
+                gameCards.forEach(card => {
+                    if (filter === 'all' || card.getAttribute('data-category') === filter) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
             });
         });
     }

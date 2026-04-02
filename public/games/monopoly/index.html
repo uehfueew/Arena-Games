@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monopoly Estates</title>
+    <link rel="stylesheet" href="../../assets/css/reset.css">
+    <link rel="stylesheet" href="../../assets/css/variables.css">
+    <link rel="stylesheet" href="monopoly.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="monopoly-nav">
+        <a href="../../index.html" class="back-bn"><i class="fas fa-arrow-left"></i> Hub</a>
+        <div class="m-title">ESTATES <span class="badge">PRO</span><button class="rulebook-btn" onclick="document.getElementById('rulebook-modal').classList.remove('hidden')"><i class="fas fa-book"></i> Rules</button></div>
+        <div class="user-badge">
+            <span id="nav-username"><i class="fas fa-user-circle"></i> Guest</span>
+            <span id="nav-tokens" class="balance-badge"><i class="fas fa-money-bill-wave"></i> $1500</span>
+        </div>
+    </nav>
+
+    <main class="monopoly-layout">
+        <!-- Sidebar: Players & Leaderboard -->
+        <aside class="sidebar-left">
+            <div class="sidebar-header"><i class="fas fa-users"></i> Players</div>
+            <div id="players-container" class="players-container"></div>
+            
+            <div class="sidebar-header" style="margin-top: 20px;"><i class="fas fa-building"></i> My Portfolio</div>
+            <div id="owned-properties" class="portfolio-container">
+                <div class="empty-state">No properties owned.</div>
+            </div>
+        </aside>
+
+        <!-- Center: The Board -->
+        <section class="board-wrapper">
+            <div class="monopoly-board" id="monopoly-board">
+                <!-- Generated dynamically by game.js -->
+            </div>
+            <div id="confetti-container"></div>
+        </section>
+
+        <!-- Sidebar: Action Panel & Log -->
+        <aside class="sidebar-right">
+            <div class="action-panel" id="action-panel">
+                <button class="roll-btn" id="btn-roll">ROLL DICE</button>
+                <div class="dice-container" style="justify-content:center; margin-bottom: 20px;box-shadow:none;background:transparent; perspective: 400px;">
+                    <div class="scene"><div class="cube" id="die1-3d">
+                        <div class="cube__face cube__face--front">⚀</div><div class="cube__face cube__face--back">⚅</div><div class="cube__face cube__face--right">⚂</div><div class="cube__face cube__face--left">⚃</div><div class="cube__face cube__face--top">⚁</div><div class="cube__face cube__face--bottom">⚄</div>
+                    </div></div>
+                    <div class="scene"><div class="cube" id="die2-3d">
+                        <div class="cube__face cube__face--front">⚀</div><div class="cube__face cube__face--back">⚅</div><div class="cube__face cube__face--right">⚂</div><div class="cube__face cube__face--left">⚃</div><div class="cube__face cube__face--top">⚁</div><div class="cube__face cube__face--bottom">⚄</div>
+                    </div></div>
+                </div>
+                <h3 id="action-title">Action Required</h3>
+                <p id="action-desc" class="action-desc">Roll the dice to start your turn.</p>
+                <button class="btn-buy hidden" id="btn-buy">Buy Property</button>
+                <button class="btn-pass hidden" id="btn-pass">End Turn</button>
+            </div>
+            
+            <div class="sidebar-header" style="margin-top: 20px;"><i class="fas fa-list-alt"></i> Game Log</div>
+            <div class="log-container" id="game-log"></div>
+        </aside>
+    </main>
+
+    <!-- Property Preview Modal -->
+    <div class="modal-overlay hidden" id="property-modal">
+        <div class="property-card-modal">
+            <div class="property-header" id="modal-header">
+                <h2 id="m-title">Property</h2>
+            </div>
+            <div class="property-body">
+                <p>Price: <span id="m-price"></span></p>
+                <p>Rent: <span id="m-rent"></span></p>
+                <p>Owner: <span id="m-owner"></span></p>
+                <hr>
+                <button class="btn-buy" id="btn-mortgage" style="margin-bottom: 10px; width: 100%; display: none; background: #f59e0b;"></button>
+                <button class="btn-buy" id="btn-build" style="margin-bottom: 10px; width: 100%; display: none;">Buy House ($50)</button>
+                <button class="close-modal" id="btn-close-modal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chance/Chest Modal -->
+    <div class="modal-overlay hidden" id="card-modal">
+        <div class="card-scene" style="width: 300px; height: 200px;">
+            <div class="card-flipper" id="card-flipper">
+                <div class="card-face back">
+                    <h2 id="card-title-back">?</h2>
+                </div>
+                <div class="card-face front property-card-modal" style="width:100%; height:100%;">
+                    <div class="property-header">
+                        <h2 id="card-title">CHANCE</h2>
+                    </div>
+                    <div id="card-desc">Advance to Go (Collect $200)</div>
+                    <button class="close-modal" onclick="closeCardModal();">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rulebook Modal -->
+    <div class="modal-overlay hidden" id="rulebook-modal">
+        <div class="property-card-modal" style="width: 80%; max-width: 700px; max-height: 80vh; overflow-y: auto;">
+            <div class="property-header" style="background:#3b82f6; color:white; position: sticky; top: 0; z-index: 10;">
+                <h2>ESTATES PRO RULEBOOK</h2>
+            </div>
+            <div class="rulebook-content" style="padding: 20px; text-align: left;">
+                <h3><i class="fas fa-bullseye"></i> Objective</h3>
+                <p>Become the wealthiest player through buying, renting, and selling properties while bankrupting your opponents.</p>
+                
+                <h3><i class="fas fa-home"></i> Property Trading & Buildings</h3>
+                <p>When you land on an unowned property, you can buy it for the listed price. Once owned, other players who land on it must pay you rent.</p>
+                <ul>
+                    <li><b><span style="color: #10b981;">Monopoly sets:</span></b> If you own all properties of the same color, the base rent is <b>doubled</b>.</li>
+                    <li><b><span style="color: #3b82f6;">Houses & Hotels:</span></b> After achieving a monopoly, you can build up to 4 houses, and eventually a hotel. Buildings massively increase rent! You can only build on your turn and before throwing the dice.</li>
+                </ul>
+
+                <h3><i class="fas fa-box-open"></i> Chance & Community Chest</h3>
+                <p>Landing on these spaces means drawing a card. Cards might give you tax refunds, make you pay unexpected fees, or fast-travel you across the board.</p>
+
+                <h3><i class="fas fa-dice"></i> Doubles & Jail (<span style="color: #fbbf24;">IN JAIL</span>)</h3>
+                <p>If you roll doubles (e.g. two 3s), you take another turn. However, if you roll doubles <b>3 times in a row</b>, you are caught 'speeding' and sent directly to Jail without passing GO!</p>
+                <p>While in jail, you cannot move, but you can still collect rent from properties you own.</p>
+                
+                <h3><i class="fas fa-file-invoice-dollar"></i> Mortgages</h3>
+                <p>If you are low on cash, click on your owned property to <b>Mortgage</b> it. You will receive 50% of the property's cost back. However, mortgaged properties <b>cannot collect rent</b> until they are unmortgaged (which costs the mortgage amount + 10% interest).</p>
+
+                <h3><i class="fas fa-skull"></i> Bankruptcy</h3>
+                <p>If you owe more money than you have and cannot raise funds by mortgaging or selling houses, you are officially bankrupt and eliminated from the game!</p>
+            </div>
+            <button class="close-modal" style="width: calc(100% - 40px); margin: 0 20px 20px 20px;" onclick="document.getElementById('rulebook-modal').classList.add('hidden')">Close Rulebook</button>
+        </div>
+    </div>
+
+    <!-- Setup Lobby -->
+    <div class="setup-overlay" id="setup-lobby">
+        <div class="setup-box" style="max-width: 650px;">
+            <h2>Game Setup</h2>
+            <div style="display:flex; flex-wrap: wrap; gap: 30px; text-align: left;">
+                <div style="flex: 1; min-width: 250px;">
+                    <h3 style="margin-bottom: 15px; font-size: 1.2rem; color: #1e293b;">Players</h3>
+                    <div id="player-inputs">
+                        <div class="player-input-row" style="margin-bottom: 10px; display: flex; gap: 10px;">
+                            <input type="text" id="p1-name" value="Player 1" style="flex:1; padding: 8px; border-radius:4px; border:1px solid #cbd5e1;">
+                            <select id="p1-token" style="padding: 8px; border-radius:4px; border:1px solid #cbd5e1;">
+                                <option value="🚗">🚗 Car</option><option value="🎩">🎩 Hat</option><option value="🐕">🐕 Dog</option><option value="🚢">🚢 Ship</option><option value="🏃">🏃 Runner</option><option value="🐎">🐎 Horse</option><option value="🥾">🥾 Boot</option><option value="🐧">🐧 Penguin</option><option value="🚂">🚂 Train</option><option value="🚁">🚁 Copter</option>
+                            </select>
+                        </div>
+                        <div class="player-input-row" style="margin-bottom: 10px; display: flex; gap: 10px;">
+                            <input type="text" id="p2-name" value="Player 2" style="flex:1; padding: 8px; border-radius:4px; border:1px solid #cbd5e1;">
+                            <select id="p2-token" style="padding: 8px; border-radius:4px; border:1px solid #cbd5e1;">
+                                <option value="🎩" selected>🎩 Hat</option><option value="🚗">🚗 Car</option><option value="🐕">🐕 Dog</option><option value="🚢">🚢 Ship</option><option value="🏃">🏃 Runner</option><option value="🐎">🐎 Horse</option><option value="🥾">🥾 Boot</option><option value="🐧">🐧 Penguin</option><option value="🚂">🚂 Train</option><option value="🚁">🚁 Copter</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="rulebook-btn" onclick="addPlayerRow()" style="color: #3b82f6; border-color: #3b82f6; width:100%; margin-left:0; margin-bottom:10px;"><i class="fas fa-plus"></i> Add Player</button>
+                </div>
+                <div style="flex: 1; min-width: 200px;" id="rule-settings">
+                    <h3 style="margin-bottom: 15px; font-size: 1.2rem; color: #1e293b;">Rules Options</h3>
+                    <label style="display:block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; color: #475569;">Starting Money ($)</label>
+                    <input type="number" id="rule-start-money" value="1500" style="width: 100%; box-sizing: border-box; margin-bottom: 15px; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;">
+                    
+                    <label style="display:block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; color: #475569;">Pass 'GO' Bonus ($)</label>
+                    <input type="number" id="rule-go-bonus" value="200" style="width: 100%; box-sizing: border-box; margin-bottom: 15px; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;">
+                </div>
+            </div>
+            <button class="btn-start" onclick="startGame()" style="margin-top: 20px;">START GAME <i class="fas fa-play"></i></button>
+        </div>
+    </div>
+
+    <script src="boardData.js"></script>
+    <script src="game.js"></script>
+    <script src="../../assets/js/api.js"></script>
+    <script src="../../components/ui.js"></script>
+</body>
+</html>

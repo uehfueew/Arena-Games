@@ -1,0 +1,71 @@
+/* 3D Dice */
+.scene {
+    width: 60px; height: 60px; perspective: 400px;
+}
+.cube {
+    width: 100%; height: 100%; position: relative;
+    transform-style: preserve-3d;
+    transition: transform 1s ease-out;
+}
+.cube.rolling {
+    animation: roll 1s infinite linear;
+}
+.cube__face {
+    position: absolute; width: 60px; height: 60px;
+    background: white; border: 2px solid #ccc;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 4rem; color: #ef4444; font-weight: bold;
+    line-height: 1; /* Match dot size */
+}
+.cube__face--front  { transform: rotateY(  0deg) translateZ(30px); }
+.cube__face--right  { transform: rotateY( 90deg) translateZ(30px); }
+.cube__face--back   { transform: rotateY(180deg) translateZ(30px); }
+.cube__face--left   { transform: rotateY(-90deg) translateZ(30px); }
+.cube__face--top    { transform: rotateX( 90deg) translateZ(30px); }
+.cube__face--bottom { transform: rotateX(-90deg) translateZ(30px); }
+
+@keyframes roll {
+    0% { transform: rotateX(0deg) rotateY(0deg); }
+    100% { transform: rotateX(360deg) rotateY(360deg); }
+}
+
+/* Card Flip */
+.card-scene {
+    perspective: 600px;
+}
+.card-flipper {
+    width: 100%; height: 100%; position: relative;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+}
+.card-flipper.flipped {
+    transform: rotateY(180deg);
+}
+.card-face {
+    position: absolute; width: 100%; height: 100%;
+    backface-visibility: hidden;
+}
+.card-face.front {
+    transform: rotateY(180deg); /* This is the actual card side */
+    background: #fffcf2; border: 4px solid #f59e0b; padding: 20px;
+}
+.card-face.back {
+    background: #d97706; color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold;
+    border: 4px solid white;
+}
+
+/* Mortgaged */
+.mortgaged { opacity: 0.4; filter: grayscale(100%); }
+.mortgaged-badge { position: absolute; background: red; color: white; font-size: 10px; z-index: 10; padding: 2px; }
+
+/* Textures */
+.monopoly-board { background-image: url('https://www.transparenttextures.com/patterns/linen.png'); }
+.board-wrapper { background-image: url('https://www.transparenttextures.com/patterns/green-dust-and-scratches.png'); }
+
+/* Confetti */
+.confetti {
+    position: fixed; top: -10px; width: 10px; height: 10px; background: gold; animation: fall 3s linear infinite; z-index: 1000;
+}
+@keyframes fall {
+    to { transform: translateY(100vh) rotate(360deg); }
+}

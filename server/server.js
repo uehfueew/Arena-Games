@@ -60,6 +60,41 @@ app.get('/api/profile/:username', (req, res) => {
 });
 
 
+// --- FRIENDS & INVITES API ---
+app.post('/api/friends/add', (req, res) => {
+    const { username, friend } = req.body;
+    if(!username || !friend) return res.status(400).json({error: 'Missing info'});
+    
+    // check if friend exists
+    db.get('SELECT username FROM users WHERE username = ?', [friend], (err, row) => {
+        if(err) return res.status(500).json({error: err.message});
+        if(!row) return res.status(404).json({error: 'User not found'});
+        
+        db.get('SELECT * FROM friends WHERE user = ? AND friend = ?', [username, friend], (err, ex) => {
+            if(ex) return res.status(400).json({error: 'Already friends'});
+            
+            db.run('INSERT INTO friends (user, friend, status) VALUES (?, ?, ?)', [username, friend, 'offline'], (err) => {
+                if(err) return res.status(500).json({error: err.message});
+                // bi-directional
+                db.run('INSERT INTO friends (user, friend, status) VALUES (?, ?, ?)', [friend, username, 'offline']);
+                res.json({success: true, message: 'Friend added!'});
+            });
+        });
+    });
+});
+
+app.post('/api/friends/invite', (req, res) => {
+    const { from, to, game, link } = req.body;
+    if(!from || !to || !game) return res.status(400).json({error: 'Missing info'});
+    
+    const message = `${from} invited you to play ${game}!`;
+    db.run('INSERT INTO notifications (user, message, type, link) VALUES (?, ?, ?, ?)', [to, message, 'invite', link], (err) => {
+        if(err) return res.status(500).json({error: err.message});
+        res.json({success: true});
+    });
+});
+// -----------------------------
+
 // API: Friends
 app.get('/api/friends/:username', (req, res) => {
     db.all(`SELECT friend, status FROM friends WHERE user = ?`, [req.params.username], (err, rows) => {
@@ -197,14 +232,79 @@ app.post('/api/record-ranked', (req, res) => {
 });
 
 // API: Record Match
+
+// --- PLAYTIME XP SYSTEM ---
+app.post('/api/record-playtime', (req, res) => {
+    let { username, game, minutes } = req.body;
+    if (!username || !game || !minutes) return res.status(400).json({ error: 'Missing data' });
+    
+    // Reward: 10 XP and 2 Tickets per minute played
+    const xpGain = minutes * 10;
+    const ticketGain = minutes * 2;
+
+    db.get(`SELECT xp, level, tickets FROM users WHERE username = ?`, [username], (err, user) => {
+        if (err || !user) return res.status(500).json({ error: 'Database err' });
+
+        let newXp = user.xp + xpGain;
+        let newLevel = user.level;
+        let nextLevelXp = newLevel * 100;
+
+        while (newXp >= nextLevelXp) {
+            newLevel++;
+            newXp -= nextLevelXp;
+            nextLevelXp = newLevel * 100;
+        }
+
+        db.run(`UPDATE users SET xp = ?, level = ?, tickets = tickets + ? WHERE username = ?`, 
+            [newXp, newLevel, ticketGain, username], 
+            function(err) {
+                if(err) console.error(err);
+                res.json({ message: 'Playtime rewarded!', xpAdded: xpGain, level: newLevel, ticketsAdded: ticketGain });
+            }
+        );
+    });
+});
+// --------------------------
+
+app.post('/api/record-playtime', (req, res) => {
+    let { username, game, minutes } = req.body;
+    if (!username || !game || !minutes) return res.status(400).json({ error: 'Missing data' });
+    
+    // Reward: 10 XP and 2 Tickets per minute played
+    const xpGain = minutes * 10;
+    const ticketGain = minutes * 2;
+
+    db.get(`SELECT xp, level, tickets FROM users WHERE username = ?`, [username], (err, user) => {
+        if (err || !user) return res.status(500).json({ error: 'Database err' });
+
+        let newXp = user.xp + xpGain;
+        let newLevel = user.level;
+        let nextLevelXp = newLevel * 100;
+
+        while (newXp >= nextLevelXp) {
+            newLevel++;
+            newXp -= nextLevelXp;
+            nextLevelXp = newLevel * 100;
+        }
+
+        db.run(`UPDATE users SET xp = ?, level = ?, tickets = tickets + ? WHERE username = ?`, 
+            [newXp, newLevel, ticketGain, username], 
+            function(err) {
+                if(err) console.error(err);
+                res.json({ message: 'Playtime rewarded!', xpAdded: xpGain, level: newLevel, ticketsAdded: ticketGain });
+            }
+        );
+    });
+});
+
 app.post('/api/record-match', (req, res) => {
-    const { username, game, result, score, opponent } = req.body; // result: 'win', 'loss', 'draw'
+    let { username, game, result, score, opponent } = req.body; // result: 'win', 'loss', 'draw'
     if (!username || !game || !result) return res.status(400).json({ error: 'Missing data' });
     
     // Process Match History
-    if (opponent) {
-        db.run(`INSERT INTO match_history (username, opponent, game, result) VALUES (?, ?, ?, ?)`, [username, opponent, game, result]);
-    }
+    if (!opponent) opponent = 'Singleplayer';
+    
+    db.run(`INSERT INTO match_history (username, opponent, game, result) VALUES (?, ?, ?, ?)`, [username, opponent, game, result]);
 
     // Process XP and Tickets
     let xpGain = 0;
@@ -270,12 +370,10 @@ app.get('/api/leaderboard', (req, res) => {
 });
 
 // Global Chat History
-const chatHistory = [];
 
 // Socket.IO Logic
 io.on('connection', (socket) => {
     // Send existing history to the newly connected socket
-    socket.emit('globalChatHistory', chatHistory);
 
     // Registration for real-time notifications/invites
     socket.on('registerUser', (username) => {
@@ -299,8 +397,6 @@ io.on('connection', (socket) => {
     });
 
     socket.on('globalChat', (messageObj) => {
-        chatHistory.push(messageObj);
-        if (chatHistory.length > 50) chatHistory.shift(); // keep last 50
         
         // messageObj: { username, text, avatar }
         io.emit('globalChatReceive', messageObj);
@@ -335,6 +431,71 @@ io.on('connection', (socket) => {
 
     socket.on('restartGame', (roomCode) => {
         socket.to(roomCode).emit('restartGame');
+    });
+});
+
+app.get('/api/stakes/balance', (req, res) => {
+    let { username } = req.query;
+    if (!username) return res.status(400).json({ error: 'Username required' });
+    db.get("SELECT tokens FROM users WHERE username = ?", [username], (err, row) => {
+        if (err) return res.status(500).json({ error: 'Server error' });
+        res.json({ tokens: row && row.tokens !== null ? row.tokens : 1000.0 });
+    });
+});
+
+
+app.get('/api/maze/progress', (req, res) => {
+    let { username } = req.query;
+    if (!username) return res.status(400).json({ error: 'Username required' });
+    db.get("SELECT max_level FROM maze_progress WHERE username = ?", [username], (err, row) => {
+        if (err) return res.status(500).json({ error: 'Server error' });
+        res.json({ max_level: row ? row.max_level : 1 });
+    });
+});
+
+app.post('/api/maze/progress', (req, res) => {
+    let { username, level } = req.body;
+    if (!username || !level) return res.status(400).json({ error: 'Invalid data' });
+    db.get("SELECT max_level FROM maze_progress WHERE username = ?", [username], (err, row) => {
+        if (row) {
+            if (level > row.max_level) {
+                db.run("UPDATE maze_progress SET max_level = ? WHERE username = ?", [level, username]);
+            }
+        } else {
+            db.run("INSERT INTO maze_progress (username, max_level) VALUES (?, ?)", [username, level]);
+        }
+        res.json({ success: true });
+    });
+});
+
+app.post('/api/stakes/update', (req, res) => {
+    let { username, amount } = req.body;
+    if (!username) return res.status(400).json({ error: 'Username required' });
+    db.get("SELECT tokens FROM users WHERE username = ?", [username], (err, row) => {
+        if (err || !row) return res.status(500).json({ error: 'Server error' });
+        let currentTokens = row.tokens !== null ? row.tokens : 1000.0;
+        let newTokens = currentTokens + amount;
+        db.run("UPDATE users SET tokens = ? WHERE username = ?", [newTokens, username], (err2) => {
+            if (err2) return res.status(500).json({ error: 'Update failed' });
+            res.json({ success: true, tokens: newTokens });
+        });
+    });
+});
+
+
+app.get('/api/stakes/ledger', (req, res) => {
+    db.all("SELECT username, game, bet, multiplier, payout FROM stakes_ledger ORDER BY id DESC LIMIT 100", [], (err, rows) => {
+        if (err) return res.status(500).json({ error: 'Server error' });
+        res.json({ ledger: rows });
+    });
+});
+
+app.post('/api/stakes/ledger', (req, res) => {
+    const { username, game, bet, multiplier, payout } = req.body;
+    db.run("INSERT INTO stakes_ledger (username, game, bet, multiplier, payout) VALUES (?, ?, ?, ?, ?)", 
+        [username || 'Guest', game, bet, multiplier, payout], function(err) {
+        if (err) return res.status(500).json({ error: 'Server error' });
+        res.json({ success: true, id: this.lastID });
     });
 });
 

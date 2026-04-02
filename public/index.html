@@ -107,11 +107,18 @@
                         Trending Now
                     </h2>
 </div>
+<div class="category-filters">
+  <button class="cat-btn active" data-filter="all">All Games</button>
+  <button class="cat-btn" data-filter="board">Board</button>
+  <button class="cat-btn" data-filter="arcade">Arcade</button>
+  <button class="cat-btn" data-filter="puzzle">Puzzle</button>
+  <button class="cat-btn" data-filter="casino">Casino</button>
+</div>
 <div class="game-grid" id="gameGrid">
-<a class="game-card" href="games/connect4/index.html">
+<a class="game-card" href="games/connect4/index.html" data-category="board">
 <span class="tag hot">Hot</span>
 <div class="game-card-img-container">
-<div class="game-card-img" style="background-image: url('https://t3.ftcdn.net/jpg/04/06/93/82/360_F_406938253_AneDCdBsJJic1FpXtQFG929pNAV9m0wm.jpg');"></div>
+<div class="game-card-img" style="background-image: url('https://cdn-icons-png.freepik.com/512/7838/7838925.png');"></div>
 </div>
 <div class="game-card-info">
 <h3 class="game-card-title">Connect 4</h3>
@@ -120,9 +127,9 @@
 </div>
 </div>
 </a>
-<a class="game-card" href="games/snake/index.html">
+<a class="game-card" href="games/snake/index.html" data-category="arcade">
 <div class="game-card-img-container">
-<div class="game-card-img" style="background-image: url('https://t4.ftcdn.net/jpg/07/11/95/05/360_F_711950540_17IHHEPz3bW00kxb3oBAm2x63XwqbAAt.jpg');"></div>
+<div class="game-card-img" style="background-image: url('https://play-lh.googleusercontent.com/PadvEMCZgk-RlrMRgx-bV-5jqHYoTiUu0U0Kdnq2CppRjndUcAcMnNI4Atm4pzcWqOc');"></div>
 </div>
 <div class="game-card-info">
 <h3 class="game-card-title">Retro Snake</h3>
@@ -131,7 +138,7 @@
 </div>
 </div>
 </a>
-<a class="game-card" href="games/tictactoe/index.html">
+<a class="game-card" href="games/tictactoe/index.html" data-category="board">
 <span class="tag new">Classic</span>
 <div class="game-card-img-container">
 <div class="game-card-img" style="background-image: url('https://cdn-icons-png.flaticon.com/512/10199/10199746.png');"></div>
@@ -143,7 +150,7 @@
 </div>
 </div>
 </a>
-<a class="game-card" href="games/sudoku/index.html">
+<a class="game-card" href="games/sudoku/index.html" data-category="puzzle">
 <span class="tag">Brain</span>
 <div class="game-card-img-container">
 <div class="game-card-img" style="background-image: url('https://media.istockphoto.com/id/1470771878/vector/number-puzzle.jpg?s=612x612&amp;w=0&amp;k=20&amp;c=Z49l3PWAKqm5zl9WtxFX9UyuxXvmUBO2hliyaa7h6rw=');"></div>
@@ -155,33 +162,22 @@
 </div>
 </div>
 </a>
-<a class="game-card" href="games/mines/index.html">
+<a class="game-card" href="games/stakes/index.html" data-category="casino">
 <div class="game-card-img-container">
-<div class="game-card-img" style="background-image: url('https://png.pngtree.com/recommend-works/png-clipart/20250707/ourmid/pngtree-blue-crystal-cluster-icon-in-flat-style-suitable-for-fantasy-gem-png-image_16704627.webp');"></div>
+<div class="game-card-img" style="background-image: url('https://cdn-icons-png.flaticon.com/512/10553/10553479.png');"></div>
 </div>
 <div class="game-card-info">
-<h3 class="game-card-title">Gem Mines</h3>
+<h3 class="game-card-title">Stakes Casino</h3>
 <div class="game-card-play-icon">
 <svg viewbox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
 </div>
 </div>
 </a>
-<a class="game-card" href="games/killersudoku/index.html">
-<span class="tag hot">Hard</span>
-<div class="game-card-img-container">
-<div class="game-card-img" style="background-image: url('https://www.dailykillersudoku.com/assets/logo-be8fb02423a8bcb9fd91213e35eb1b6f983b613920d834bc3751517733ce2ad5.png');"></div>
-</div>
-<div class="game-card-info">
-<h3 class="game-card-title">Killer Sudoku</h3>
-<div class="game-card-play-icon">
-<svg viewbox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
-</div>
-</div>
-</a>
-<a class="game-card" href="games/labyrinth/index.html">
+
+<a class="game-card" href="games/labyrinth/index.html" data-category="puzzle">
 <span class="tag new">New</span>
 <div class="game-card-img-container">
-<div class="game-card-img" style="background-image: url('https://cdn-icons-png.freepik.com/512/2241/2241394.png');"></div>
+<div class="game-card-img" style="background-image: url('https://cdn-icons-png.flaticon.com/512/8587/8587166.png');"></div>
 </div>
 <div class="game-card-info">
 <h3 class="game-card-title">Labyrinth</h3>
@@ -190,6 +186,19 @@
 </div>
 </div>
 </a>
+<a class="game-card" href="games/monopoly/index.html" data-category="board">
+<span class="tag epic">Epic</span>
+<div class="game-card-img-container">
+<div class="game-card-img" style="background-image: url('https://cdn-icons-png.flaticon.com/512/3233/3233481.png');"></div>
+</div>
+<div class="game-card-info">
+<h3 class="game-card-title">Monopoly Estates</h3>
+<div class="game-card-play-icon">
+<svg viewbox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+</div>
+</div>
+</a>
+
 </div>
 </main>
 </div>

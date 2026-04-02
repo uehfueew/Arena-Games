@@ -592,3 +592,41 @@ canvas:fullscreen, #board:fullscreen, #sudoku-board:fullscreen, #sudokuBoard:ful
     max-height: 55vh !important;
     max-width: 55vw !important;
 }
+
+/* Category Filters */
+.category-filters {
+  display: flex;
+  justify-content: flex-start;
+  gap: 15px;
+  margin-bottom: 2.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.cat-btn {
+  padding: 10px 24px;
+  border: 2px solid var(--bg-card);
+  background: var(--bg-main);
+  color: var(--text-muted);
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  outline: none;
+}
+
+.cat-btn:hover {
+  border-color: var(--accent-primary, #6c5ce7);
+  color: var(--text-main, #ffffff);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(108, 92, 231, 0.2);
+}
+
+.cat-btn.active {
+  background: linear-gradient(135deg, var(--bg-button, #6c5ce7), var(--bg-button-hover, #5a4ac3));
+  border-color: transparent;
+  color: var(--text-main, #ffffff);
+  box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+}

@@ -9,29 +9,51 @@ let networkPlay = false;
 let myColor = 'red';
 let gameStarted = true;
 
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
+    const overlay = document.getElementById('game-start-overlay');
+    const container = document.getElementById('actual-game-container');
+    
+    if (urlParams.has('mode')) {
+        if (overlay) overlay.style.display = 'none';
+        if (container) {
+            container.style.display = 'flex';
+            container.style.filter = 'none';
+        }
+    } else {
+        if (overlay) overlay.style.display = 'flex';
+        if (container) {
+            container.style.display = 'none';
+            container.style.filter = 'blur(5px)';
+        }
+    }
+
     initializeBoard(onColClick);
 
     const restartBtn = document.getElementById('restartBtn');
-    restartBtn.addEventListener('click', () => {
-        handleRestartLocal();
-        if (networkPlay) sendRestart();
-    });
+    if (restartBtn) {
+        restartBtn.addEventListener('click', () => {
+            handleRestartLocal();
+            if (networkPlay) sendRestart();
+        });
+    }
 
     const setupPanel = document.getElementById('setup-panel');
     if (mode === 'multi') {
-        setupPanel.style.display = 'block';
+        if (setupPanel) setupPanel.style.display = 'block';
         networkPlay = true;
         gameStarted = false;
-        document.getElementById('status').textContent = 'Create or Join a Room...';
+        const statusEl = document.getElementById('status');
+        if (statusEl) statusEl.textContent = 'Create or Join a Room...';
 
         initSocket(
             (msg, color) => {
                 myColor = color;
-                document.getElementById('roomDisplay').textContent = msg;
+                const roomDisplay = document.getElementById('roomDisplay');
+                if (roomDisplay) roomDisplay.textContent = msg;
             },
             () => {
-                document.getElementById('roomDisplay').textContent = 'Game Started! ' + (myColor === 'red' ? 'Your Turn' : "Opponent's Turn");
+                const roomDisplay = document.getElementById('roomDisplay');
+                if (roomDisplay) roomDisplay.textContent = 'Game Started! ' + (myColor === 'red' ? 'Your Turn' : "Opponent's Turn");
                 gameStarted = true;
                 handleRestartLocal();
             },
@@ -44,37 +66,79 @@ document.addEventListener('DOMContentLoaded', () => {
             () => handleRestartLocal()
         );
 
-        document.getElementById('createBtn').addEventListener('click', () => createRoom());
-        document.getElementById('joinBtn').addEventListener('click', () => {
-            const room = document.getElementById('roomInput').value;
-            if (room) joinRoom(room);
-        });
+        const createBtn = document.getElementById('createBtn');
+        if (createBtn) createBtn.addEventListener('click', () => createRoom());
+        
+        const joinBtn = document.getElementById('joinBtn');
+        if (joinBtn) {
+            joinBtn.addEventListener('click', () => {
+                const roomInput = document.getElementById('roomInput');
+                if (roomInput && roomInput.value) joinRoom(roomInput.value);
+            });
+        }
     }
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
+const isAIMode = mode.endsWith('_ai') || mode.startsWith('ranked_');
+let p1Score = 0;
+let p2Score = 0;
+
+function updateScoreDisplay() {
+    const p1El = document.getElementById('score-p1');
+    const p2El = document.getElementById('score-p2');
+    if (p1El) p1El.textContent = p1Score;
+    if (p2El) p2El.textContent = p2Score;
+}
+
+function showPlayAgainButton() {
+    const btn = document.getElementById('play-again-btn');
+    if (btn) {
+        btn.style.display = 'flex';
+        btn.onclick = () => {
+            btn.style.display = 'none';
+            handleRestartLocal();
+            if (networkPlay) sendRestart();
+        };
+    }
+}
 
 function recordResult(winnerColor) {
     let result = 'loss';
-    if (winnerColor === 'Draw') result = 'draw';
-    else if (winnerColor === myColor) result = 'win';
-
-    if (window.showGameOver) {
-        if (result === 'win') {
-            window.showGameOver('You Won!', 'Congratulations on your victory!', true);
-        } else if (result === 'draw') {
-            window.showGameOver('Draw!', 'It\'s a stalemate.', null);
+    
+    if (!networkPlay && !isAIMode) {
+        // Pass and play scoring (no result sent to db for both playing local)
+        if (winnerColor === 'red') p1Score++;
+        else if (winnerColor === 'yellow') p2Score++;
+        else result = 'draw';
+    } else {
+        if (winnerColor === 'Draw') {
+            result = 'draw';
+        } else if (winnerColor === myColor) {
+            result = 'win';
+            p1Score++;
         } else {
-            window.showGameOver('You Lost!', 'Better luck next time.', false);
+            result = 'loss';
+            p2Score++;
+        }
+        
+        const username = localStorage.getItem('username');
+        if (username) {
+            fetch('/api/record-match', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, game: 'connect4', result, score: 0 })
+            }).catch(e => console.error('Failed to save score'));
         }
     }
 
-    const username = localStorage.getItem('username');
-    if (!username) return;
-
-    fetch('/api/record-match', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, game: 'connect4', result, score: 0 })
-    }).catch(e => console.error('Failed to save score'));
+    updateScoreDisplay();
+    showPlayAgainButton();
 }
 
 function checkGameOverState() {
@@ -97,15 +161,17 @@ function onColClick(col) {
             checkGameOverState();
         }
     } else {
-        if (currentPlayer === 'yellow') return; // AI's turn
-        const rowLanded = dropDisc(col, 'red');
+        if (isAIMode && currentPlayer === 'yellow') return; // AI's turn
+        const rowLanded = dropDisc(col, currentPlayer);
         if (rowLanded !== null) {
             const winner = checkGameState();
             if (winner) {
                 recordResult(winner);
             } else {
                 switchPlayer();
-                setTimeout(() => aiTurn(), 500);
+                if (isAIMode && currentPlayer === 'yellow') {
+                    setTimeout(() => aiTurn(), 500);
+                }
             }
         }
     }
@@ -125,12 +191,5 @@ function handleRestartLocal() {
     if (networkPlay) {
         document.getElementById('status').textContent = myColor === 'red' ? "Your Turn (Red)" : "Waiting for (Red)";
         // In network play, Red always starts
-    }
-}
-fetch('/api/record-ranked', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, result, opponentElo: userElo })
-});
     }
 }

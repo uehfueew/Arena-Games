@@ -1,9 +1,11 @@
 import { generateSudoku } from './generator.js';
+import { generateSudoku as generateKillerSudoku } from './killer_generator.js';
 import { config } from '../../main.js';
 
 let board = [];
 let initialBoard = [];
 let solution = [];
+let cages = [];
 let notes = []; 
 let selectedCell = null;
 let errorCount = 0;
@@ -13,29 +15,175 @@ let timerInterval = null;
 let secondsElapsed = 0;
 let time = 0;
 let notesMode = false;
+let isPaused = false;
 let currentDifficulty = 'medium';
 let hintsLeft = 3;
 let history = []; // for undo
 
+
+function getCellElement(r, c) {
+    return document.querySelector(`.sudoku-cell[data-row="${r}"][data-col="${c}"]`);
+}
+function drawCages() {
+    if (!cages || cages.length === 0) return;
+    
+    document.querySelectorAll('.cageDiv').forEach(el => el.remove());
+    document.querySelectorAll('.cage-sum').forEach(el => el.remove());
+    
+    // Clear old hacky border styles, keeping layout clean
+    document.querySelectorAll('.sudoku-cell').forEach(c => {
+        if(c.dataset.origBorderTop !== undefined) {
+            c.style.removeProperty('border-top');
+            delete c.dataset.origBorderTop;
+        }
+        if(c.dataset.origBorderBottom !== undefined) {
+            c.style.removeProperty('border-bottom');
+            delete c.dataset.origBorderBottom;
+        }
+        if(c.dataset.origBorderLeft !== undefined) {
+            c.style.removeProperty('border-left');
+            delete c.dataset.origBorderLeft;
+        }
+        if(c.dataset.origBorderRight !== undefined) {
+            c.style.removeProperty('border-right');
+            delete c.dataset.origBorderRight;
+        }
+    });
+
+    const BORDER = '2px dashed rgba(255, 255, 255, 0.6)';
+    
+    cages.forEach(cage => {
+        let minR = 9, minC = 9;
+        cage.cells.forEach(([r, c]) => {
+            if (r < minR || (r === minR && c < minC)) { minR = r; minC = c; }
+            let cell = getCellElement(r, c);
+            if(!cell) return;
+            
+            let cageDiv = document.createElement('div');
+            cageDiv.className = 'cageDiv';
+            cageDiv.style.position = 'absolute';
+            cageDiv.style.top = '3px';
+            cageDiv.style.left = '3px';
+            cageDiv.style.right = '3px';
+            cageDiv.style.bottom = '3px';
+            cageDiv.style.pointerEvents = 'none';
+            cageDiv.style.zIndex = '1';
+            cageDiv.style.boxSizing = 'border-box';
+            
+            cageDiv.style.borderTop = '2px solid transparent';
+            cageDiv.style.borderBottom = '2px solid transparent';
+            cageDiv.style.borderLeft = '2px solid transparent';
+            cageDiv.style.borderRight = '2px solid transparent';
+            
+            if (!cage.cells.find(([rr, cc]) => rr === r - 1 && cc === c)) cageDiv.style.borderTop = BORDER;
+            if (!cage.cells.find(([rr, cc]) => rr === r + 1 && cc === c)) cageDiv.style.borderBottom = BORDER;
+            if (!cage.cells.find(([rr, cc]) => rr === r && cc === c - 1)) cageDiv.style.borderLeft = BORDER;
+            if (!cage.cells.find(([rr, cc]) => rr === r && cc === c + 1)) cageDiv.style.borderRight = BORDER;
+            
+            cell.appendChild(cageDiv);
+        });
+        
+        let topCell = getCellElement(minR, minC);
+        if (topCell) {
+            let sumDiv = document.createElement('div');
+            sumDiv.className = 'cage-sum';
+            sumDiv.textContent = cage.sum;
+            sumDiv.style.position = 'absolute';
+            sumDiv.style.top = '3px';
+            sumDiv.style.left = '4px';
+            sumDiv.style.fontSize = '0.65rem';
+            sumDiv.style.color = 'rgba(255, 255, 255, 0.8)';
+            sumDiv.style.fontWeight = 'bold';
+            sumDiv.style.pointerEvents = 'none';
+            sumDiv.style.zIndex = '2';
+            sumDiv.style.lineHeight = '1';
+            topCell.appendChild(sumDiv);
+        }
+    });
+}
+    
+window.switchMode = function(mode) {
+    if (!window.currentSudokuMode) window.currentSudokuMode = 'classic';
+    window.currentSudokuMode = mode;
+    
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        if(btn.id === 'mode-' + mode) {
+            btn.classList.add('active');
+            btn.style.background = '';
+            btn.style.border = '';
+            btn.style.boxShadow = '';
+        } else {
+            btn.classList.remove('active');
+            btn.style.background = '';
+            btn.style.border = '';
+            btn.style.boxShadow = '';
+        }
+    });
+
+    let diffExtreme = document.getElementById('diff-extreme');
+    if (mode === 'killer') {
+        if (diffExtreme) diffExtreme.style.display = 'none';
+        if (currentDifficulty === 'extreme') currentDifficulty = 'hard';
+    } else {
+        if (diffExtreme) diffExtreme.style.display = 'inline-block';
+    }
+    
+    window.startGame(currentDifficulty);
+};
+
 window.startGame = function(difficulty) {
     if (!difficulty) difficulty = currentDifficulty;
     currentDifficulty = difficulty;
+    let mode = window.currentSudokuMode || 'classic';
     
     // Highlight active difficulty
     document.querySelectorAll('.diff-btn').forEach(btn => {
         if(btn.textContent.toLowerCase() === difficulty) {
-            btn.style.boxShadow = '0 0 10px #558B6E';
-            btn.style.border = '2px solid #558B6E';
+            btn.classList.add('active');
+            btn.style.boxShadow = '';
+            btn.style.border = '';
+            btn.style.background = '';
         } else {
-            btn.style.boxShadow = 'none';
-            btn.style.border = '2px solid transparent';
+            btn.classList.remove('active');
+            btn.style.boxShadow = '';
+            btn.style.border = '';
+            btn.style.background = '';
         }
     });
 
-    const puzzleData = generateSudoku(difficulty);
-    board = puzzleData.puzzle.map(row => [...row]);
-    initialBoard = puzzleData.puzzle.map(row => [...row]);
-    solution = puzzleData.solution.map(row => [...row]);
+    let puzzleData;
+    if (mode === 'killer') {
+        puzzleData = generateKillerSudoku(difficulty === 'extreme' ? 'master' : difficulty);
+        board = Array.from({length: 9}, () => Array(9).fill(0));
+        initialBoard = Array.from({length: 9}, () => Array(9).fill(0));
+        solution = puzzleData.solution.map(row => [...row]);
+        cages = puzzleData.cages;
+        
+        let targetGivens = 0;
+        if (difficulty === 'easy') targetGivens = 15;
+        else if (difficulty === 'medium') targetGivens = 7;
+        else if (difficulty === 'hard') targetGivens = 2;
+        else targetGivens = 0; // master/extreme = 0 givens
+        
+        let given = 0;
+        let maxTries = 1000;
+        while(given < targetGivens && maxTries > 0) {
+            maxTries--;
+            let r = Math.floor(Math.random() * 9);
+            let c = Math.floor(Math.random() * 9);
+            if (board[r][c] === 0) {
+                board[r][c] = solution[r][c];
+                initialBoard[r][c] = solution[r][c];
+                given++;
+            }
+        }
+    } else {
+        puzzleData = generateSudoku(difficulty);
+        board = puzzleData.puzzle.map(row => [...row]);
+        initialBoard = puzzleData.puzzle.map(row => [...row]);
+        solution = puzzleData.solution.map(row => [...row]);
+        cages = [];
+    }
 
     notes = Array.from({length: 9}, () => Array.from({length: 9}, () => new Set()));
     errorCount = 0;
@@ -53,14 +201,19 @@ window.startGame = function(difficulty) {
 
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-        secondsElapsed++;
-        time = secondsElapsed;
-        let m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
-        let s = (secondsElapsed % 60).toString().padStart(2, '0');
-        document.getElementById('timer').textContent = `${m}:${s}`;
+        if(!isPaused) {
+            secondsElapsed++;
+            time = secondsElapsed;
+            let m = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+            let s = (secondsElapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${m}:${s}`;
+        }
     }, 1000);
 
     renderBoard();
+    if (cages && cages.length > 0) {
+        drawCages();
+    }
     updateNumpad();
 }
 
@@ -72,10 +225,10 @@ window.toggleNotes = function() {
         if(badge) {
             badge.textContent = 'ON';
             badge.classList.remove('bg-secondary', 'n-badge');
-            badge.style.background = '#558B6E';
+            badge.style.background = '#6c5ce7';
             badge.style.color = '#fff';
         }
-        if(btn) btn.style.borderColor = '#558B6E';
+        if(btn) btn.style.borderColor = '#a29bfe';
     } else {
         if(badge) {
             badge.textContent = 'OFF';
@@ -87,6 +240,7 @@ window.toggleNotes = function() {
 }
 
 window.undoMove = function() {
+    if (isPaused) return;
     if (history.length === 0) return;
     const lastMove = history.pop();
     board[lastMove.r][lastMove.c] = lastMove.prevVal;
@@ -97,6 +251,7 @@ window.undoMove = function() {
 }
 
 window.eraseCell = function() {
+    if (isPaused) return;
     if (!selectedCell) return;
     const { r, c } = selectedCell;
     if (initialBoard[r][c] !== 0) return; // Cant erase givens
@@ -114,6 +269,7 @@ window.eraseCell = function() {
 }
 
 window.useHint = function() {
+    if (isPaused) return;
     if (hintsLeft <= 0 || !selectedCell) return;
     const { r, c } = selectedCell;
     if (board[r][c] !== 0) return;
@@ -186,9 +342,13 @@ function updateCellsDisplay() {
         }
     }
     refreshHighlights();
+    if (cages && cages.length > 0) {
+        drawCages();
+    }
 }
 
 function selectCell(r, c) {
+    if (isPaused) return;
     selectedCell = { r, c };
     refreshHighlights();
 }
@@ -221,6 +381,7 @@ function refreshHighlights() {
 }
 
 window.inputNumber = function(num) {
+    if (isPaused) return;
     if (!selectedCell) return;
     const { r, c } = selectedCell;
     if (initialBoard[r][c] !== 0) return;
@@ -280,6 +441,7 @@ window.inputNumber = function(num) {
 }
 
 document.addEventListener('keydown', (e) => {
+    if (isPaused) return;
     if (e.key >= '1' && e.key <= '9') {
         window.inputNumber(parseInt(e.key));
     } else if (e.key === 'Backspace' || e.key === 'Delete') {
@@ -316,6 +478,12 @@ function endGame(msg, result, score = 0) {
     const scoreText = document.getElementById('gameOverText');
     if(scoreText) scoreText.textContent = msg;
     
+    const overlayBtn = document.getElementById('overlayBtn');
+    if(overlayBtn) {
+        overlayBtn.textContent = 'Play Again';
+        overlayBtn.onclick = window.restartGameMode;
+    }
+
     const overlay = document.getElementById('overlay');
     if(overlay) overlay.style.display = 'flex';
 
@@ -346,9 +514,33 @@ window.returnHome = function() {
     window.location.href = '../index.html';
 }
 
+window.togglePause = function() {
+    isPaused = !isPaused;
+    const overlay = document.getElementById('overlay');
+    const scoreText = document.getElementById('gameOverText');
+    const pauseIcon = document.getElementById('pauseIcon');
+    const overlayBtn = document.getElementById('overlayBtn');
+    
+    if (isPaused) {
+        if(scoreText) scoreText.textContent = 'Game Paused';
+        if(overlayBtn) {
+            overlayBtn.textContent = 'Resume';
+            overlayBtn.onclick = window.togglePause;
+        }
+        if(overlay) overlay.style.display = 'flex';
+        if(pauseIcon) pauseIcon.className = 'bi bi-play-fill';
+    } else {
+        if(overlay) overlay.style.display = 'none';
+        if(pauseIcon) pauseIcon.className = 'bi bi-pause-fill';
+    }
+}
+
 window.restartGameMode = function() {
     const overlay = document.getElementById('overlay');
     if(overlay) overlay.style.display = 'none';
+    isPaused = false;
+    const pauseIcon = document.getElementById('pauseIcon');
+    if(pauseIcon) pauseIcon.className = 'bi bi-pause-fill';
     window.startGame();
 }
 
@@ -376,3 +568,7 @@ function updateNumpad() {
         }
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.switchMode('classic');
+});

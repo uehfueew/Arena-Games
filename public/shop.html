@@ -84,9 +84,25 @@
 </div>
 </header>
 <main class="page-content">
-<div class="section-header">
-<h2 class="section-title">Cosmetics Store</h2>
+<div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05);">
+  <h2 class="section-title" style="margin: 0; display: flex; align-items: center; gap: 10px;">
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="var(--accent-warning)"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"></path></svg> 
+    Cosmetics Store
+  </h2>
+  <div class="user-tickets" style="background: rgba(255,165,2,0.1); padding: 8px 16px; border-radius: 20px; font-weight: 700; color: var(--accent-warning); border: 1px solid rgba(255,165,2,0.3); display: flex; align-items: center; gap: 8px;">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2zm-2 7.74c-1.16-.89-1.99-2.27-1.99-3.74s.83-2.85 1.99-3.74V6h-2.14c-.38 1.41-1.46 2.53-2.85 2.91-1.35.37-2.85-.01-3.83-1.01L10 6.64 8.81 7.82c-.99.98-2.48 1.36-3.83.99A4.015 4.015 0 0 1 2.14 6H2v3.74c1.16.89 1.99 2.27 1.99 3.74S3.16 16.33 2 17.22V20h2.14c.38-1.41 1.46-2.53 2.85-2.91 1.35-.37 2.85.01 3.83 1.01l1.19 1.25 1.19-1.19c.98-.99 2.48-1.37 3.83-1.01 1.4.38 2.47 1.5 2.85 2.91H20v-2.32z"/></svg>
+    <span id="shop-user-tickets">0</span>
+  </div>
 </div>
+
+<div class="category-filters" id="shop-categories" style="margin-top: 1.5rem;">
+  <button class="cat-btn active" data-filter="all">All Items</button>
+  <button class="cat-btn" data-filter="avatar">Avatars</button>
+  <button class="cat-btn" data-filter="snake_color">Snake Trails</button>
+  <button class="cat-btn" data-filter="tictactoe_token">Board Tokens</button>
+  <button class="cat-btn" data-filter="tictactoe_theme">Board Themes</button>
+</div>
+
 <div class="game-grid" id="shop-grid">
 <!-- Grid loaded by logic -->
 </div>
@@ -99,43 +115,128 @@
 <script src="/main.js" type="module"></script>
 <script>
 const items = [
-    { title: 'Neon Snake', type: 'snake_color', value: '#39ff14', cost: 100, img: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' },
-    { title: 'Cyberpunk Snake', type: 'snake_color', value: '#ff00ff', cost: 500, img: 'linear-gradient(135deg, #f12711 0%, #f5af19 100%)' },
-    { title: 'Golden Avatar', type: 'avatar', value: '★', cost: 1000, img: 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)' },
-    { title: 'Premium Ticket', type: 'ticket', value: '1', cost: 2000, img: 'linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)' },
-    { title: 'Red Snake', type: 'snake_color', value: '#ff0000', cost: 150, img: 'linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)' },
-    { title: 'Sapphire Avatar', type: 'avatar', value: '💎', cost: 1500, img: 'linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)' }
+    // Avatars
+    { title: 'Golden Star', type: 'avatar', value: '★', cost: 1000, img: 'linear-gradient(135deg, #FFD700 0%, #FDB931 100%)', cat: 'avatar' },
+    { title: 'Sapphire Gem', type: 'avatar', value: '💎', cost: 1500, img: 'linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%)', cat: 'avatar' },
+    { title: 'Fire Skull', type: 'avatar', value: '💀', cost: 2000, img: 'linear-gradient(135deg, #f12711 0%, #f5af19 100%)', cat: 'avatar' },
+    { title: 'Alien', type: 'avatar', value: '👽', cost: 3000, img: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)', cat: 'avatar' },
+
+    // Snake
+    { title: 'Neon Trail', type: 'snake_color', value: '#39ff14', cost: 100, img: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)', cat: 'snake_color' },
+    { title: 'Cyber Dark', type: 'snake_color', value: '#1a1a2e', cost: 500, img: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', cat: 'snake_color' },
+    { title: 'Crimson Blood', type: 'snake_color', value: '#ff0000', cost: 150, img: 'linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)', cat: 'snake_color' },
+    { title: 'Ghost White', type: 'snake_color', value: '#ffffff', cost: 800, img: 'linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%)', cat: 'snake_color' },
+
+    // TicTacToe Tokens
+    { title: 'Neon X & O', type: 'tictactoe_token', value: 'neon_cross', cost: 400, img: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', cat: 'tictactoe_token' },
+    { title: 'Fire Elements', type: 'tictactoe_token', value: 'fire_circle', cost: 400, img: 'linear-gradient(135deg, #f12711 0%, #f5af19 100%)', cat: 'tictactoe_token' },
+
+    // TicTacToe Themes
+    { title: 'Midnight Board', type: 'tictactoe_theme', value: 'midnight', cost: 600, img: 'linear-gradient(135deg, #232526 0%, #414345 100%)', cat: 'tictactoe_theme' },
+    { title: 'Synthwave', type: 'tictactoe_theme', value: 'synthwave', cost: 1200, img: 'linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%)', cat: 'tictactoe_theme' }
 ];
 
-
 document.addEventListener('DOMContentLoaded', () => {
+    // Render
+    renderShop('all');
+
+    // Fetch and display user tickets
+    if (window.API) {
+        window.API.getProfile().then(p => {
+            if (p && p.tickets !== undefined) {
+                document.getElementById('shop-user-tickets').innerText = p.tickets;
+                
+                // Dim items that you can't afford
+                items.forEach((item, i) => {
+                    const btn = document.getElementById('buy-btn-' + i);
+                    if (btn && p.tickets < item.cost) {
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                        btn.innerHTML = 'Locked <i class="fas fa-lock"></i>';
+                    }
+                });
+            }
+        });
+    }
+
+    // Filter Logic
+    const filterBtns = document.querySelectorAll('#shop-categories .cat-btn');
+    if (filterBtns.length > 0) {
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Animate transition
+                const grid = document.getElementById('shop-grid');
+                grid.style.opacity = 0;
+                setTimeout(() => {
+                    renderShop(btn.getAttribute('data-filter'));
+                    grid.style.opacity = 1;
+                }, 200);
+            });
+        });
+    }
+});
+
+function renderShop(filter) {
     const grid = document.getElementById('shop-grid');
     if(!grid) return;
     
-    grid.innerHTML = items.map((item, i) => {
-        let clickAction = item.type === 'snake_color' ? `onclick="previewSnakeColor('${item.value}', '${item.title}')"` : '';
-        let badge = item.type === 'snake_color' ? '<span class="tag" style="background:#e74c3c;">Preview</span>' : '';
+    const renderedItems = items.map((item, i) => {
+        if (filter !== 'all' && item.cat !== filter) return '';
+
+        let previewContent = '';
+        if (item.type === 'avatar') {
+            previewContent = `<div style="font-size: 5rem; display:flex; align-items:center; justify-content:center; height:100%; text-shadow: 0 4px 15px rgba(0,0,0,0.5);">${item.value}</div>`;
+        } else if (item.type === 'snake_color') {
+            previewContent = `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; background: ${item.value}; border-radius: 5px; box-shadow: 0 0 15px ${item.value};"></div>`;
+        }
+
+        let extraClass = '';
+        if (item.cat === 'snake_color') extraClass = 'previewable-snake'; 
         
         return `
-        <div class="game-card" style="display:flex; flex-direction:column; overflow:hidden; cursor:pointer;" ${clickAction}>
-            ${badge}
-            <div class="game-card-img" style="background: ${item.img}; height:160px; transition: transform 0.4s; z-index:1;"></div>
-            <div style="padding:20px; text-align:center; background:var(--bg-card); flex:1; display:flex; flex-direction:column; justify-content:space-between; z-index:2; border-top:1px solid rgba(255,255,255,0.05);">
-                <h3 style="margin-bottom:10px; font-size:1.25rem; font-weight:700;">${item.title}</h3>
-                <div style="color:var(--accent-warning); margin-bottom:20px; font-weight:bold; font-size:1.1rem;">💰 ${item.cost} Coins</div>
-                <button class="btn btn-outline" style="width:100%; font-weight:bold;" onclick="event.stopPropagation(); buyItem(${i})">Buy Now</button>
+        <div class="game-card" style="display:flex; flex-direction:column; overflow:hidden; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; animation: fadeInUp 0.4s ease forwards;">
+            <div class="game-card-img ${extraClass}" style="background: ${item.img}; height:160px; transition: transform 0.4s; z-index:1; position:relative; overflow:hidden;" data-color="${item.value}">
+                ${previewContent}
+            </div>
+            <div style="padding:20px; text-align:center; background:var(--bg-card); flex:1; display:flex; flex-direction:column; justify-content:space-between; z-index:2;">
+                <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 5px;">${item.title.split(' ')[1] || item.cat.replace('_', ' ')}</div>
+                <h3 style="margin-bottom:15px; font-size:1.3rem; font-weight:800; color: var(--text-main);">${item.title}</h3>
+                
+                <div style="color:var(--accent-warning); margin-bottom:20px; font-weight:bold; font-size:1.15rem; background: rgba(255,165,2,0.05); padding: 8px; border-radius: 8px; border: 1px dashed rgba(255,165,2,0.2);">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="vertical-align:-4px;"><path d="M22 10V6c0-1.1-.9-2-2-2H4c-1.1 0-1.99.89-1.99 2v4c1.1 0 1.99.9 1.99 2s-.89 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2s.9-2 2-2z"/></svg> 
+                    ${item.cost}
+                </div>
+                
+                <button id="buy-btn-${i}" class="btn btn-outline" style="width:100%; font-weight:bold; border-radius: 20px; padding: 12px; font-size:1rem; transition: background 0.3s;" onclick="buyItem(event, ${i})">Purchase</button>
             </div>
         </div>
         `;
     }).join('');
-});
+    
+    grid.innerHTML = renderedItems || '<div style="text-align:center; padding: 50px; color: var(--text-muted); width: 100%; grid-column: 1 / -1;">No items found.</div>';
+}
 
-
-window.buyItem = function(index) {
+window.buyItem = function(e, index) {
+    if(e) e.stopPropagation();
     const item = items[index];
     const username = localStorage.getItem('username');
     if(!username) return alert('Please log in to purchase');
     
+    const btn = document.getElementById('buy-btn-' + index);
+    if(btn.style.cursor === 'not-allowed') return;
+
+    // Optimistic UI check
+    const tkEl = document.getElementById('shop-user-tickets');
+    let currentTk = parseInt(tkEl.innerText);
+    if (!isNaN(currentTk) && currentTk < item.cost) {
+        return alert('Not enough tickets!');
+    }
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
     fetch('/api/shop/buy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -143,8 +244,19 @@ window.buyItem = function(index) {
     })
     .then(r => r.json())
     .then(d => {
-        if(d.error) alert('Error: ' + d.error);
-        else alert('Purchase successful!');
+        if(d.error) {
+            alert('Error: ' + d.error);
+            btn.innerHTML = 'Purchase';
+        } else {
+            btn.innerHTML = 'Owned <i class="fas fa-check"></i>';
+            btn.style.background = 'var(--accent-success)';
+            btn.style.color = '#fff';
+            btn.style.borderColor = 'var(--accent-success)';
+            
+            if (!isNaN(currentTk)) {
+                tkEl.innerText = currentTk - item.cost;
+            }
+        }
     });
 };
 </script>

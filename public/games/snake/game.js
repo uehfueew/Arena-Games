@@ -1,93 +1,335 @@
-export const GRID_SIZE = 20;
-export const TILE_COUNT = 20; // 600 / 20
-
-export let state = {
-    p1: { x: 2, y: 10, dx: 0, dy: 0, tail: [], score: 0, color: '#00e5ff', alive: true },
-    p2: { x: 18, y: 10, dx: 0, dy: 0, tail: [], score: 0, color: '#ff3366', alive: true },
-    food: { x: 15, y: 10 },
-    active: false,
-    multiplayer: false
-};
-
-export function initState(multiplayer = false) {
-    state.multiplayer = multiplayer;
-    state.p1 = { x: 2, y: 10, dx: 0, dy: 0, tail: [], score: 0, color: '#00e5ff', alive: true };
-    if (multiplayer) {
-        state.p2 = { x: 18, y: 10, dx: 0, dy: 0, tail: [], score: 0, color: '#ff3366', alive: true };
-    } else {
-        state.p2 = { alive: false, tail: [] }; // Inactive in solo
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const scoreVal = document.getElementById('scoreVal');
+const highScoreVal = document.getElementById('highScoreVal');
+let highScore = 0;
+const currentUser = localStorage.getItem('username');
+if(currentUser) {
+  fetch('/api/profile/' + currentUser).then(r=>r.json()).then(d=> {
+    if(d.stats) {
+      const s = d.stats.find(g => g.game === 'snake');
+      if(s && s.high_score) { highScore = s.high_score; highScoreVal.innerText = highScore; }
     }
-    state.active = true;
-    spawnFood();
+  });
+}
+const overlay = document.getElementById('overlay');
+const overlayTitle = document.getElementById('overlay-title');
+const overlayMsg = document.getElementById('overlay-msg');
+const comboBar = document.getElementById('combo-bar');
+const multiplierVal = document.getElementById('multiplierVal');
+
+// Game Settings
+const TILE_SIZE = 30; // 20x20 grid (600x600)
+const GRID_WIDTH = canvas.width / TILE_SIZE;
+const GRID_HEIGHT = canvas.height / TILE_SIZE;
+const INITIAL_FPS = 8; 
+const MAX_FPS = 25;
+
+// Colors
+const COLOR_GRASS_1 = '#689f38'; // Light grass
+const COLOR_GRASS_2 = '#558b2f'; // Dark grass
+const COLOR_SNAKE_HEAD = '#1b5e20'; // Dark green
+const COLOR_SNAKE_BODY = '#8bc34a'; // Light green body
+const COLOR_APPLE = '#f44336'; // Red apple
+const COLOR_APPLE_LEAF = '#4caf50'; // Leaf on apple
+
+// Game State
+let snake = [];
+let dir = { x: 1, y: 0 };
+let nextDir = { x: 1, y: 0 };
+let food = { x: 0, y: 0 };
+let score = 0;
+let gameState = 'START'; // START, PLAYING, GAMEOVER
+let lastLogicTime = 0;
+let fps = INITIAL_FPS;
+
+// Particles
+let particles = [];
+
+// Combo System
+let comboTimeLeft = 0;
+const COMBO_MAX_TIME = 5000; // 5 seconds
+let comboMultiplier = 1;
+let lastFrameTime = performance.now();
+
+// Track combo visually
+function resetCombo() {
+    comboTimeLeft = 0;
+    comboMultiplier = 1;
+    updateComboUI();
 }
 
-export function spawnFood() {
-    state.food = {
-        x: Math.floor(Math.random() * TILE_COUNT),
-        y: Math.floor(Math.random() * TILE_COUNT)
-    };
-}
-
-export function changeDirection(playerKey, dx, dy) {
-    const p = state[playerKey];
-    if (!p) return;
-    // Prevent 180 reverses
-    if (dy === 0 && p.dx !== 0) return;
-    if (dx === 0 && p.dy !== 0) return;
+function eatFood() {
+    // Increase combo
+    if (comboTimeLeft > 0) {
+        comboMultiplier++;
+    } else {
+        comboMultiplier = 1;
+    }
     
-    p.dx = dx;
-    p.dy = dy;
+    // Add Score
+    let points = 10 * comboMultiplier;
+    score += points;
+    scoreVal.innerText = score;
+    if(score > highScore) { highScore = score; highScoreVal.innerText = highScore; }
+    
+    // Speed Ramp
+    if (fps < MAX_FPS) {
+        fps += 0.2; // Slight increase
+    }
+
+    // Reset Combo Timer
+    comboTimeLeft = COMBO_MAX_TIME;
+    updateComboUI();
+
+    // Spawn particles
+    createParticles(food.x * TILE_SIZE + TILE_SIZE/2, food.y * TILE_SIZE + TILE_SIZE/2, COLOR_APPLE);
+
+    // New Food
+    spawnFood();
+    
 }
 
-export function updateEngine() {
-    if (!state.active) return;
-
-    const players = state.multiplayer ? ['p1', 'p2'] : ['p1'];
-
-    players.forEach(key => {
-        const p = state[key];
-        if (!p.alive) return;
-
-        // Move tail
-        if (p.dx !== 0 || p.dy !== 0) if (p.dx !== 0 || p.dy !== 0) p.tail.unshift({ x: p.x, y: p.y });
-        
-        // Move head
-        p.x += p.dx;
-        p.y += p.dy;
-
-        // Wall Collision
-        if (p.x < 0 || p.x >= TILE_COUNT || p.y < 0 || p.y >= TILE_COUNT) {
-            p.alive = false;
-        }
-
-        // Self collision & Enemy collision
-        players.forEach(otherKey => {
-            const other = state[otherKey];
-            other.tail.forEach(seg => {
-                if (p.x === seg.x && p.y === seg.y) p.alive = false;
-            });
-            // Head to head check (tie if both hit)
-            if (key !== otherKey && other.alive && p.x === other.x && p.y === other.y) {
-                p.alive = false;
-                other.alive = false;
-            }
-        });
-
-        if (p.alive) {
-            // Food collision
-            if (p.x === state.food.x && p.y === state.food.y) {
-                p.score += 10;
-                spawnFood();
-            } else {
-                if (p.dx !== 0 || p.dy !== 0) p.tail.pop();
-            }
-        }
-    });
-
-    // Check game over
-    if (state.multiplayer) {
-        if (!state.p1.alive || !state.p2.alive) state.active = false;
+function updateComboUI() {
+    let pct = Math.max(0, (comboTimeLeft / COMBO_MAX_TIME) * 100);
+    comboBar.style.width = pct + '%';
+    
+    if (comboMultiplier > 1) {
+        multiplierVal.innerText = `x${comboMultiplier}`;
+        multiplierVal.classList.add('active');
+        setTimeout(() => multiplierVal.classList.remove('active'), 100);
     } else {
-        if (!state.p1.alive) state.active = false;
+        multiplierVal.innerText = '';
     }
 }
+
+function spawnFood() {
+    let valid = false;
+    while (!valid) {
+        valid = true;
+        food.x = Math.floor(Math.random() * GRID_WIDTH);
+        food.y = Math.floor(Math.random() * GRID_HEIGHT);
+        for (let segment of snake) {
+            if (segment.x === food.x && segment.y === food.y) {
+                valid = false;
+                break;
+            }
+        }
+    }
+}
+
+function initGame() {
+    snake = [
+        { x: 10, y: 10 },
+        { x: 9, y: 10 },
+        { x: 8, y: 10 }
+    ];
+    dir = { x: 1, y: 0 };
+    nextDir = { x: 1, y: 0 };
+    score = 0;
+    scoreVal.innerText = score;
+    fps = INITIAL_FPS;
+    particles = [];
+    resetCombo();
+    spawnFood();
+    gameState = 'PLAYING';
+    overlay.classList.add('hidden');
+    lastLogicTime = performance.now();
+    lastFrameTime = performance.now();
+    window.requestAnimationFrame(loop);
+}
+
+function gameOver() {
+    gameState = 'GAMEOVER';
+    overlay.classList.remove('hidden');
+    overlayTitle.innerHTML = `GAME OVER<br><span style="font-size:32px;color:white;">SCORE: ${score}</span>`;
+    overlayMsg.innerText = "PRESS SPACE TO RETRY";
+    
+    // Save Score
+    fetch('/api/record-match', {
+        method: 'POST',
+        headers:{'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            username: currentUser || 'Guest',
+            game: 'snake',
+            result: 'win',
+            score: score
+        })
+    }).catch(()=>console.log("Not logged in / record failed"));
+}
+
+window.addEventListener('keydown', e => {
+    if (e.code === 'Space') {
+        if (gameState === 'START' || gameState === 'GAMEOVER') {
+            initGame();
+        }
+        e.preventDefault();
+        return;
+    }
+    
+    if (gameState !== 'PLAYING') return;
+
+    if ((e.code === 'ArrowUp' || e.code === 'KeyW') && dir.y === 0) {
+        nextDir = { x: 0, y: -1 };
+        e.preventDefault();
+    }
+    if ((e.code === 'ArrowDown' || e.code === 'KeyS') && dir.y === 0) {
+        nextDir = { x: 0, y: 1 };
+        e.preventDefault();
+    }
+    if ((e.code === 'ArrowLeft' || e.code === 'KeyA') && dir.x === 0) {
+        nextDir = { x: -1, y: 0 };
+        e.preventDefault();
+    }
+    if ((e.code === 'ArrowRight' || e.code === 'KeyD') && dir.x === 0) {
+        nextDir = { x: 1, y: 0 };
+        e.preventDefault();
+    }
+});
+
+function drawGrass() {
+    for (let i = 0; i < Math.ceil(GRID_WIDTH); i++) {
+        for (let j = 0; j < Math.ceil(GRID_HEIGHT); j++) {
+            ctx.fillStyle = (i + j) % 2 === 0 ? COLOR_GRASS_1 : COLOR_GRASS_2;
+            ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
+    }
+}
+
+function createParticles(x, y, color) {
+    for(let i=0; i<15; i++) {
+        particles.push({
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8,
+            life: 1,
+            color: color
+        });
+    }
+}
+
+function updateParticles(dt) {
+    for(let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= dt * 0.002;
+        if(p.life <= 0) {
+            particles.splice(i, 1);
+        }
+    }
+}
+
+function drawParticles() {
+    particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, TILE_SIZE*0.15, 0, Math.PI*2);
+        ctx.fill();
+    });
+    ctx.globalAlpha = 1.0;
+}
+
+function render() {
+    drawGrass();
+
+    // Apple
+    let cx = food.x * TILE_SIZE + TILE_SIZE/2;
+    let cy = food.y * TILE_SIZE + TILE_SIZE/2;
+    let bounce = Math.sin(performance.now() / 200) * 2;
+    cy += bounce;
+
+    ctx.fillStyle = COLOR_APPLE;
+    ctx.beginPath();
+    ctx.arc(cx, cy, TILE_SIZE/2.2, 0, Math.PI*2);
+    ctx.fill();
+    
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath();
+    ctx.arc(cx - TILE_SIZE/6, cy - TILE_SIZE/6, TILE_SIZE/6, 0, Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle = COLOR_APPLE_LEAF;
+    ctx.beginPath();
+    ctx.ellipse(cx + TILE_SIZE/8, cy - TILE_SIZE/2.5, TILE_SIZE/6, TILE_SIZE/12, Math.PI/4, 0, Math.PI*2);
+    ctx.fill();
+
+    // Snake
+    for (let i = snake.length - 1; i >= 0; i--) {
+        let seg = snake[i];
+        let isHead = i === 0;
+
+        ctx.fillStyle = isHead ? COLOR_SNAKE_HEAD : COLOR_SNAKE_BODY;
+        let shx = seg.x * TILE_SIZE;
+        let shy = seg.y * TILE_SIZE;
+
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(shx + 2, shy + 2, TILE_SIZE - 4, TILE_SIZE - 4, 6);
+        else ctx.rect(shx + 2, shy + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+        ctx.fill();
+    }
+
+    drawParticles();
+}
+
+function updateGameLogic() {
+    dir = nextDir;
+    let head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+    if (head.x < 0) head.x = GRID_WIDTH - 1;
+    if (head.x >= GRID_WIDTH) head.x = 0;
+    if (head.y < 0) head.y = GRID_HEIGHT - 1;
+    if (head.y >= GRID_HEIGHT) head.y = 0;
+
+    for (let i = 0; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) {
+            gameOver();
+            return;
+        }
+    }
+
+    snake.unshift(head);
+
+    if (head.x === food.x && head.y === food.y) {
+        eatFood();
+    } else {
+        snake.pop();
+    }
+}
+
+function loop(currentTime) {
+    if (gameState !== 'PLAYING') return;
+    
+    window.requestAnimationFrame(loop);
+
+    let dt = currentTime - lastFrameTime;
+    lastFrameTime = currentTime;
+
+    if (comboTimeLeft > 0) {
+        comboTimeLeft -= dt;
+        if (comboTimeLeft <= 0) {
+            comboTimeLeft = 0;
+            comboMultiplier = 1;
+        }
+        updateComboUI();
+    }
+    
+    updateParticles(dt);
+
+    const secondsSinceLastLogic = (currentTime - lastLogicTime) / 1000;
+        
+    if (secondsSinceLastLogic >= 1 / fps) {
+        lastLogicTime = currentTime;
+        updateGameLogic();
+    }
+    
+    // Always render (60fps) for smooth particles and bobbing apple
+    if(gameState === 'PLAYING') {
+        render();
+    }
+}
+
+// Initial draw of the start screen
+drawGrass();
